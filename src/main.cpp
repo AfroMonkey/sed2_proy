@@ -25,6 +25,7 @@ int main(int argc, char const *argv[])
             {
                 Email email;
                 fill(email);
+                email.set_time(time(nullptr));
                 ofstream file(EMAIL_FILE_PATH, ios::out);
                 if (!file.is_open())
                 {
@@ -32,7 +33,7 @@ int main(int argc, char const *argv[])
                     break;
                 }
                 file.seekp(email.get_id() * sizeof(Email), ios_base::beg);
-                file.write((char*)&email, sizeof(Email));
+                email.write(file);
                 file.close();
                 msg(MSG_DONE);
                 break;
@@ -48,7 +49,7 @@ int main(int argc, char const *argv[])
                     break;
                 }
                 file.seekg(id * sizeof(Email), ios_base::beg);
-                file.read((char*)&email, sizeof(Email));
+                email.read(file);
                 file.close();
                 if (!file.eof() && email.get_id() != 0)
                 {
@@ -71,48 +72,62 @@ int main(int argc, char const *argv[])
                     break;
                 }
                 file.seekg(id * sizeof(Email), ios_base::beg);
-                file.read((char*)&email, sizeof(Email));
+                email.read(file);
                 if (!file.eof() && email.get_id() != 0)
                 {
                     display(email);
-                    msg("1) Fecha\n");
-                    msg("2) Hora\n");
-                    msg("3) Remitente\n");
-                    msg("4) Destinatario\n");
-                    msg("5) CC\n");
-                    msg("6) BCC\n");
-                    msg("7) Asunto\n");
-                    msg("8) Contenido\n");
+                    msg("1) Fecha y Hora\n");
+                    msg("2) Remitente\n");
+                    msg("3) Destinatario\n");
+                    msg("4) CC\n");
+                    msg("5) BCC\n");
+                    msg("6) Asunto\n");
+                    msg("7) Contenido\n");
                     switch (get_int())
                     {
                         case 1:
-                            email.set_date(get_sring().c_str());
+                        {
+                            struct tm tm;
+                            strptime(get_string("Y-M-D H:M>").c_str(), "%Y-%m-%d %H:%M", &tm);
+                            time_t time = mktime(&tm);
+                            email.set_time(time);
                             break;
+                        }
                         case 2:
-                            email.set_time(get_sring().c_str());
+                        {
+                            email.set_from(get_string().c_str());
                             break;
+                        }
                         case 3:
-                            email.set_from(get_sring().c_str());
+                        {
+                            email.set_to(get_string().c_str());
                             break;
+                        }
                         case 4:
-                            email.set_to(get_sring().c_str());
+                        {
+                            email.set_cc(get_string().c_str());
                             break;
+                        }
                         case 5:
-                            email.set_cc(get_sring().c_str());
+                        {
+                            email.set_bcc(get_string().c_str());
                             break;
+                        }
                         case 6:
-                            email.set_bcc(get_sring().c_str());
+                        {
+                            email.set_subject(get_string().c_str());
                             break;
+                        }
                         case 7:
-                            email.set_subject(get_sring().c_str());
-                            break;
-                        case 8:
+                        {
                             email.set_content(get_text().c_str());
                             break;
+                        }
                         default:
                             msg(INVALID_OPTION);
                     }
                     file.seekp(email.get_id() * sizeof(Email), ios_base::beg);
+                    email.write(file);
                     file.write((char*)&email, sizeof(Email));
                     file.close();
                 }

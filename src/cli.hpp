@@ -43,24 +43,25 @@ int get_int(string msg = ">", int def = -1) {
     return i;
 }
 
-string get_sring(string msg = ">")
+string get_string(string msg = ">")
 {
     string s;
-    std::cout << msg;
-    cin >> s;
+    cout << msg;
+    getline(cin, s);
     return s;
 }
 
 string get_text(string msg = ">")
 {
-    string s, buffer;
-    std::cout << msg << endl;
-    int n = get_int("  Lienas>");
-    for (int i = 0; i < n; i++)
+    char c;
+    string s;
+    cout << msg;
+    while (cin.get(c))
     {
-        getline(cin, buffer);
-        s += buffer + '\n';
+        s.append(1, c);
     }
+    s.append(1, '\0');
+    cin.clear();
     return s;
 }
 
@@ -82,13 +83,11 @@ void pause() {
 void fill(Email& email)
 {
     email.set_id(get_int("ID>"));
-    email.set_date(get_sring("Fecha (yyyymmdd)>").c_str());
-    email.set_time(get_sring("Hora (hhmm)>").c_str());
-    email.set_from(get_sring("Remitente>").c_str());
-    email.set_to(get_sring("Destinatario>").c_str());
-    email.set_cc(get_sring("CC>").c_str());
-    email.set_bcc(get_sring("BCC>").c_str());
-    email.set_subject(get_sring("Asunto>").c_str());
+    email.set_from(get_string("Remitente>").c_str());
+    email.set_to(get_string("Destinatario>").c_str());
+    email.set_cc(get_string("CC>").c_str());
+    email.set_bcc(get_string("BCC>").c_str());
+    email.set_subject(get_string("Asunto>").c_str());
     email.set_content(get_text("Contenido>").c_str());
 }
 

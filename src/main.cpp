@@ -56,12 +56,6 @@ int main(int argc, char const *argv[])
             {
                 Email* email;
                 int id = get_int("ID>");
-                fstream file(EMAIL_FILE_PATH, ios::in | ios::out);
-                if (!file.is_open())
-                {
-                    msg(MSG_ERROR_FILE);
-                    break;
-                }
                 email = email_file.read(id);
                 if (email != nullptr)
                 {

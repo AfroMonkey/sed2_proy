@@ -1,2 +1,5 @@
 # C++ bin
 *.out
+
+# Data
+*.bd

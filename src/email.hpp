@@ -6,6 +6,11 @@
 
 struct EmailData
 {
+};
+
+class Email
+{
+private:
     int id;
     time_t time;
     char from[256];
@@ -14,21 +19,11 @@ struct EmailData
     char bcc[256];
     char subject[78];
     char content[512];
-};
-
-class Email
-{
-private:
-    EmailData data;
-    char time_c[100];
-    char date_c[100];
-    void update_time();
 public:
     void set_id(const int id);
     int get_id();
     void set_time(const time_t time);
-    char* get_time();
-    char* get_date();
+    time_t get_time();
     void set_from(const char *from);
     char* get_from();
     void set_to(const char *to);
@@ -41,105 +36,92 @@ public:
     char* get_subject();
     void set_content(const char *content);
     char* get_content();
+    static int cmp_from(char *from, Email* a);
 };
-
-void Email::update_time()
-{
-    if (!strftime(time_c, sizeof(time_c), "%H:%M", localtime(&data.time)))
-    {
-        strcpy(time_c, "00:00");
-    }
-
-    if (!strftime(date_c, sizeof(date_c), "%Y-%m-%d", localtime(&data.time)))
-    {
-        strcpy(date_c, "1970-01-01");
-    }
-}
 
 void Email::set_id(const int id)
 {
-    this->data.id = id;
+    this->id = id;
 }
 
 int Email::get_id()
 {
-    return data.id;
+    return id;
 }
 
 void Email::set_time(const time_t time)
 {
-    this->data.time = time;
-    update_time();
+    this->time = time;
 }
 
-char* Email::get_time()
+time_t Email::get_time()
 {
-    return time_c;
-}
-
-char* Email::get_date()
-{
-    return date_c;
+    return time;
 }
 
 void Email::set_from(const char* from)
 {
-    strcpy(this->data.from, from);
+    strcpy(this->from, from);
 }
 
 char* Email::get_from()
 {
-    return data.from;
+    return from;
 }
 
 void Email::set_to(const char* to)
 {
-    strcpy(this->data.to, to);
+    strcpy(this->to, to);
 }
 
 char* Email::get_to()
 {
-    return data.to;
+    return to;
 }
 
 void Email::set_cc(const char* cc)
 {
-    strcpy(this->data.cc, cc);
+    strcpy(this->cc, cc);
 }
 
 char* Email::get_cc()
 {
-    return data.cc;
+    return cc;
 }
 
 void Email::set_bcc(const char* bcc)
 {
-    strcpy(this->data.bcc, bcc);
+    strcpy(this->bcc, bcc);
 }
 
 char* Email::get_bcc()
 {
-    return data.bcc;
+    return bcc;
 }
 
 void Email::set_subject(const char* subject)
 {
-    strcpy(this->data.subject, subject);
+    strcpy(this->subject, subject);
 }
 
 char* Email::get_subject()
 {
-    return data.subject;
+    return subject;
 }
 
 void Email::set_content(const char* content)
 {
-    strcpy(this->data.content, content);
+    strcpy(this->content, content);
 }
 
 char* Email::get_content()
 {
-    return data.content;
+    return content;
+}
+
+int Email::cmp_from(char* from, Email* b)
+{
+    return strcmp(from, b->get_from());
 }
 
 #endif

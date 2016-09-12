@@ -15,8 +15,8 @@ public:
     bool write(const T* data, const size_t pos);
     bool append(const T* data);
     T* read(const size_t pos);
-    template <typename F>
-    size_t find(T data, F cmp);
+    template <typename V, typename F>
+    size_t find(V value, F cmp);
 };
 
 template <typename T>
@@ -85,24 +85,24 @@ T* FixedFileManager<T>::read(const size_t pos)
 }
 
 template <typename T>
-template <typename F>
-size_t FixedFileManager<T>::find(T data, F cmp)
+template <typename V, typename F>
+size_t FixedFileManager<T>::find(V value, F cmp)
 {
     if (file.is_open())
     {
-        T aux = new T;
+        T* aux = new T;
         file.seekg(0, std::ios::beg);
         while (true)
         {
-            file.read((char*)&aux, sizeof(T));
+            file.read((char*)aux, sizeof(T));
             if (file.eof()) break;
-            if (cmp(data, aux))
+            if (cmp(value, aux) == 0)
             {
-                return file.tellg() - sizeof(T);
+                return (file.tellg() - sizeof(T)) / sizeof(T);
             }
         }
     }
-    return nullptr;
+    return (size_t)-1;
 }
 
 

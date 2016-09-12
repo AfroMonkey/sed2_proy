@@ -6,10 +6,33 @@ using namespace std;
 
 #define EMAIL_FILE_PATH "email.bd"
 
+FixedFileManager<Email> email_file(EMAIL_FILE_PATH);
+
+size_t search_by()
+{
+    msg("1) ID\n");
+    msg("2) Remitente\n");
+    switch (get_int())
+    {
+        case 1:
+        {
+            return get_int("ID>");
+        }
+        case 2:
+        {
+            char from[256];
+            size_t pos;
+            strcpy(from, get_string("Remitente>").c_str());
+            pos = email_file.find(from, Email::cmp_from);
+            return pos;
+        }
+
+    }
+}
+
 int main(int argc, char const *argv[])
 {
     short opc;
-    FixedFileManager<Email> email_file(EMAIL_FILE_PATH);
     do
     {
         if (email_file.is_open())
@@ -40,9 +63,8 @@ int main(int argc, char const *argv[])
             case OPC_READ:
             {
                 Email* email;
-                int id = get_int("ID>");
-                email = email_file.read(id);
-                if (email != nullptr)
+                size_t pos = search_by();
+                if (pos != (size_t)-1 && (email = email_file.read(pos)) && email != nullptr)
                 {
                     display(email);
                 }
@@ -55,9 +77,8 @@ int main(int argc, char const *argv[])
             case OPC_MODIFY:
             {
                 Email* email;
-                int id = get_int("ID>");
-                email = email_file.read(id);
-                if (email != nullptr)
+                size_t pos = search_by();
+                if (pos != (size_t)-1 && (email = email_file.read(pos)) && email != nullptr)
                 {
                     display(email);
                     msg("1) Fecha y Hora\n");
@@ -111,6 +132,25 @@ int main(int argc, char const *argv[])
                             msg(INVALID_OPTION);
                     }
                     email_file.write(email, email->get_id());
+                }
+                else
+                {
+                    msg(MSG_NOT_FOUND);
+                }
+                break;
+            }
+            case OPC_DELETE:
+            {
+                Email* email;
+                size_t pos = search_by();
+                if (pos != (size_t)-1 && (email = email_file.read(pos)) && email != nullptr)
+                {
+                    display(email);
+                    if(get_bool("Seguro?"))
+                    {
+                        Email empty;
+                        email_file.write(&empty, email->get_id());
+                    }
                 }
                 else
                 {

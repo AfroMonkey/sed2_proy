@@ -2,6 +2,8 @@
 #define CLI_HPP
 
 #include <iostream>
+#include <cstring>
+
 #include "email.hpp"
 
 using namespace std;
@@ -16,6 +18,7 @@ using namespace std;
 #define OPC_WRITE 1
 #define OPC_READ 2
 #define OPC_MODIFY 3
+#define OPC_DELETE 4
 #define OPC_ERROR_FILE -1
 
 #define INVALID_OPTION "Opcion invalida\n"
@@ -29,6 +32,7 @@ void display_menu()
     cout << OPC_WRITE << ") Escribir" << endl;
     cout << OPC_READ << ") Leer" << endl;
     cout << OPC_MODIFY << ") Modificar" << endl;
+    cout << OPC_DELETE << ") Eliminar" << endl;
     cout << OPC_EXIT << ") Salir" << endl;
 }
 
@@ -42,6 +46,14 @@ int get_int(string msg = ">", int def = -1) {
     }
     cin.ignore();
     return i;
+}
+
+bool get_bool(string msg = ">")
+{
+    char c;
+    cout << msg << "(y/n)";
+    cin >> c;
+    return c == 'y';
 }
 
 string get_string(string msg = ">")
@@ -79,6 +91,28 @@ void pause() {
     cin.ignore();
 }
 
+string timet_to_date(time_t time)
+{
+    char date_c[11];
+    if (!strftime(date_c, sizeof(date_c), "%Y-%m-%d", localtime(&time)))
+    {
+        strcpy(date_c, "1970-01-01");
+    }
+    string s(date_c, date_c+11);
+    return s;
+}
+
+string timet_to_time(time_t time)
+{
+    char time_c[6];
+    if (!strftime(time_c, sizeof(time_c), "%H:%M", localtime(&time)))
+    {
+        strcpy(time_c, "00:00");
+    }
+    string s(time_c, time_c+6);
+    return s;
+}
+
 /* ---------------------------------------------------------------------------*/
 
 void fill(Email* email)
@@ -94,15 +128,23 @@ void fill(Email* email)
 
 void display(Email* email)
 {
-    cout << "ID: " << email->get_id() << endl;
-    cout << "Fecha: " << email->get_date() << endl;
-    cout << "Hora: " << email->get_time() << endl;
-    cout << "Remitente: " << email->get_from() << endl;
-    cout << "Destinatario: " << email->get_to() << endl;
-    cout << "CC: " << email->get_cc() << endl;
-    cout << "BCC: " << email->get_bcc() << endl;
-    cout << "Asunto: " << email->get_subject() << endl;
-    cout << "Contenido: " << email->get_content() << endl;
+    if (strcmp(email->get_from(), "") != 0)
+    {
+        cout << "ID: " << email->get_id() << endl;
+        cout << "Fecha: " << timet_to_date(email->get_time()) << endl;
+        cout << "Hora: " << timet_to_time(email->get_time()) << endl;
+        cout << "Remitente: " << email->get_from() << endl;
+        cout << "Destinatario: " << email->get_to() << endl;
+        cout << "CC: " << email->get_cc() << endl;
+        cout << "BCC: " << email->get_bcc() << endl;
+        cout << "Asunto: " << email->get_subject() << endl;
+        cout << "Contenido: " << email->get_content() << endl;
+    }
+    else
+    {
+        msg(MSG_NOT_FOUND);
+    }
 }
+
 
 #endif

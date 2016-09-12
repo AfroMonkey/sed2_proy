@@ -3,7 +3,6 @@
 
 #include <ctime>
 #include <cstring>
-#include <fstream>
 
 struct EmailData
 {
@@ -42,10 +41,6 @@ public:
     char* get_subject();
     void set_content(const char *content);
     char* get_content();
-    void write(std::ofstream &file);
-    void read(std::ifstream &file);
-    void write(std::fstream &file);
-    void read(std::fstream &file);
 };
 
 void Email::update_time()
@@ -145,28 +140,6 @@ void Email::set_content(const char* content)
 char* Email::get_content()
 {
     return data.content;
-}
-
-void Email::write(std::ofstream &file)
-{
-    file.write((char*)&data, sizeof(EmailData));
-}
-
-void Email::read(std::ifstream &file)
-{
-    file.read((char*)&data, sizeof(EmailData));
-    update_time();
-}
-
-void Email::write(std::fstream &file)
-{
-    file.write((char*)&data, sizeof(EmailData));
-}
-
-void Email::read(std::fstream &file)
-{
-    file.read((char*)&data, sizeof(EmailData));
-    update_time();
 }
 
 #endif

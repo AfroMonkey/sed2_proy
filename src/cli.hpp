@@ -16,11 +16,12 @@ using namespace std;
 #define OPC_WRITE 1
 #define OPC_READ 2
 #define OPC_MODIFY 3
+#define OPC_ERROR_FILE -1
 
 #define INVALID_OPTION "Opcion invalida\n"
 #define MSG_DONE "Listo\n"
 #define MSG_NOT_FOUND "No encontrado\n"
-#define FILE_ERROR "Error en el archivo\n"
+#define MSG_ERROR_FILE "Error en el archivo\n"
 #define MSG_PAUSE "Presione entrar para continuar . . ."
 
 void display_menu()
@@ -80,28 +81,28 @@ void pause() {
 
 /* ---------------------------------------------------------------------------*/
 
-void fill(Email& email)
+void fill(Email* email)
 {
-    email.set_id(get_int("ID>"));
-    email.set_from(get_string("Remitente>").c_str());
-    email.set_to(get_string("Destinatario>").c_str());
-    email.set_cc(get_string("CC>").c_str());
-    email.set_bcc(get_string("BCC>").c_str());
-    email.set_subject(get_string("Asunto>").c_str());
-    email.set_content(get_text("Contenido>").c_str());
+    email->set_id(get_int("ID>"));
+    email->set_from(get_string("Remitente>").c_str());
+    email->set_to(get_string("Destinatario>").c_str());
+    email->set_cc(get_string("CC>").c_str());
+    email->set_bcc(get_string("BCC>").c_str());
+    email->set_subject(get_string("Asunto>").c_str());
+    email->set_content(get_text("Contenido>").c_str());
 }
 
-void display(Email& email)
+void display(Email* email)
 {
-    cout << "ID: " << email.get_id() << endl;
-    cout << "Fecha: " << email.get_date() << endl;
-    cout << "Hora: " << email.get_time() << endl;
-    cout << "Remitente: " << email.get_from() << endl;
-    cout << "Destinatario: " << email.get_to() << endl;
-    cout << "CC: " << email.get_cc() << endl;
-    cout << "BCC: " << email.get_bcc() << endl;
-    cout << "Asunto: " << email.get_subject() << endl;
-    cout << "Contenido: " << email.get_content() << endl;
+    cout << "ID: " << email->get_id() << endl;
+    cout << "Fecha: " << email->get_date() << endl;
+    cout << "Hora: " << email->get_time() << endl;
+    cout << "Remitente: " << email->get_from() << endl;
+    cout << "Destinatario: " << email->get_to() << endl;
+    cout << "CC: " << email->get_cc() << endl;
+    cout << "BCC: " << email->get_bcc() << endl;
+    cout << "Asunto: " << email->get_subject() << endl;
+    cout << "Contenido: " << email->get_content() << endl;
 }
 
 #endif

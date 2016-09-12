@@ -1,7 +1,6 @@
-#include <fstream>
-
 #include "cli.hpp"
 #include "email.hpp"
+#include "fixed_file_manager.hpp"
 
 using namespace std;
 
@@ -10,11 +9,19 @@ using namespace std;
 int main(int argc, char const *argv[])
 {
     short opc;
+    FixedFileManager<Email> email_file(EMAIL_FILE_PATH);
     do
     {
-        clear_screen();
-        display_menu();
-        opc = get_int();
+        if (email_file.is_open())
+        {
+            clear_screen();
+            display_menu();
+            opc = get_int();
+        }
+        else
+        {
+            opc = OPC_ERROR_FILE;
+        }
         switch (opc)
         {
             case OPC_EXIT:
@@ -23,35 +30,19 @@ int main(int argc, char const *argv[])
             }
             case OPC_WRITE:
             {
-                Email email;
+                Email *email = new Email;
                 fill(email);
-                email.set_time(time(nullptr));
-                ofstream file(EMAIL_FILE_PATH, ios::out);
-                if (!file.is_open())
-                {
-                    msg(FILE_ERROR);
-                    break;
-                }
-                file.seekp(email.get_id() * sizeof(Email), ios_base::beg);
-                email.write(file);
-                file.close();
+                email->set_time(time(nullptr));
+                email_file.write(email, email->get_id());
                 msg(MSG_DONE);
                 break;
             }
             case OPC_READ:
             {
-                Email email;
+                Email* email;
                 int id = get_int("ID>");
-                ifstream file(EMAIL_FILE_PATH, ios::in);
-                if (!file.is_open())
-                {
-                    msg(FILE_ERROR);
-                    break;
-                }
-                file.seekg(id * sizeof(Email), ios_base::beg);
-                email.read(file);
-                file.close();
-                if (!file.eof() && email.get_id() != 0)
+                email = email_file.read(id);
+                if (email != nullptr)
                 {
                     display(email);
                 }
@@ -63,17 +54,16 @@ int main(int argc, char const *argv[])
             }
             case OPC_MODIFY:
             {
-                Email email;
+                Email* email;
                 int id = get_int("ID>");
                 fstream file(EMAIL_FILE_PATH, ios::in | ios::out);
                 if (!file.is_open())
                 {
-                    msg(FILE_ERROR);
+                    msg(MSG_ERROR_FILE);
                     break;
                 }
-                file.seekg(id * sizeof(Email), ios_base::beg);
-                email.read(file);
-                if (!file.eof() && email.get_id() != 0)
+                email = email_file.read(id);
+                if (email != nullptr)
                 {
                     display(email);
                     msg("1) Fecha y Hora\n");
@@ -90,51 +80,53 @@ int main(int argc, char const *argv[])
                             struct tm tm;
                             strptime(get_string("Y-M-D H:M>").c_str(), "%Y-%m-%d %H:%M", &tm);
                             time_t time = mktime(&tm);
-                            email.set_time(time);
+                            email->set_time(time);
                             break;
                         }
                         case 2:
                         {
-                            email.set_from(get_string().c_str());
+                            email->set_from(get_string("Remitente").c_str());
                             break;
                         }
                         case 3:
                         {
-                            email.set_to(get_string().c_str());
+                            email->set_to(get_string("Destinatario").c_str());
                             break;
                         }
                         case 4:
                         {
-                            email.set_cc(get_string().c_str());
+                            email->set_cc(get_string("CC").c_str());
                             break;
                         }
                         case 5:
                         {
-                            email.set_bcc(get_string().c_str());
+                            email->set_bcc(get_string("BCC").c_str());
                             break;
                         }
                         case 6:
                         {
-                            email.set_subject(get_string().c_str());
+                            email->set_subject(get_string("Asunto").c_str());
                             break;
                         }
                         case 7:
                         {
-                            email.set_content(get_text().c_str());
+                            email->set_content(get_text("Contenido").c_str());
                             break;
                         }
                         default:
                             msg(INVALID_OPTION);
                     }
-                    file.seekp(email.get_id() * sizeof(Email), ios_base::beg);
-                    email.write(file);
-                    file.write((char*)&email, sizeof(Email));
-                    file.close();
+                    email_file.write(email, email->get_id());
                 }
                 else
                 {
                     msg(MSG_NOT_FOUND);
                 }
+                break;
+            }
+            case OPC_ERROR_FILE:
+            {
+                msg(MSG_ERROR_FILE);
                 break;
             }
             default:

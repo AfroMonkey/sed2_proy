@@ -14,12 +14,13 @@ using namespace std;
 #define CLEAR "clear"
 #endif
 
-#define OPC_EXIT 0
-#define OPC_WRITE 1
-#define OPC_READ 2
-#define OPC_MODIFY 3
-#define OPC_DELETE 4
-#define OPC_ERROR_FILE -1
+#define OPT_EXIT 0
+#define OPT_WRITE 1
+#define OPT_READ 2
+#define OPT_MODIFY 3
+#define OPT_DELETE 4
+#define OPT_EXPORT_CSV 5
+#define OPT_ERROR_FILE -1
 
 #define INVALID_OPTION "Opcion invalida\n"
 #define MSG_DONE "Listo\n"
@@ -29,11 +30,12 @@ using namespace std;
 
 void display_menu()
 {
-    cout << OPC_WRITE << ") Escribir" << endl;
-    cout << OPC_READ << ") Leer" << endl;
-    cout << OPC_MODIFY << ") Modificar" << endl;
-    cout << OPC_DELETE << ") Eliminar" << endl;
-    cout << OPC_EXIT << ") Salir" << endl;
+    cout << OPT_WRITE << ") Escribir" << endl;
+    cout << OPT_READ << ") Leer" << endl;
+    cout << OPT_MODIFY << ") Modificar" << endl;
+    cout << OPT_DELETE << ") Eliminar" << endl;
+    cout << OPT_EXPORT_CSV << ") Exportar" << endl;
+    cout << OPT_EXIT << ") Salir" << endl;
 }
 
 int get_int(string msg = ">", int def = -1) {

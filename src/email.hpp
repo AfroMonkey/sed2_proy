@@ -3,6 +3,8 @@
 
 #include <ctime>
 #include <cstring>
+#include <vector>
+#include <string>
 
 struct EmailData
 {
@@ -37,6 +39,7 @@ public:
     void set_content(const char *content);
     char* get_content();
     static int cmp_from(char *from, Email* a);
+    std::vector<std::string> get_fields();
 };
 
 void Email::set_id(const int id)
@@ -122,6 +125,34 @@ char* Email::get_content()
 int Email::cmp_from(char* from, Email* b)
 {
     return strcmp(from, b->get_from());
+}
+
+std::vector<std::string> Email::get_fields()
+{
+    std::vector<std::string> fields;
+    std::string aux;
+    char date_c[11];
+    char time_c[6];
+    fields.push_back(std::to_string(id));
+    strftime(date_c, sizeof(date_c), "%Y-%m-%d", localtime(&time));
+    aux = date_c;
+    fields.push_back(aux);
+    strftime(time_c, sizeof(time_c), "%H:%M", localtime(&time));
+    aux = time_c;
+    fields.push_back(aux);
+    aux = from;
+    fields.push_back(aux);
+    aux = to;
+    fields.push_back(aux);
+    aux = cc;
+    fields.push_back(aux);
+    aux = bcc;
+    fields.push_back(aux);
+    aux = subject;
+    fields.push_back(aux);
+    aux = content;
+    fields.push_back(aux);
+    return fields;
 }
 
 #endif

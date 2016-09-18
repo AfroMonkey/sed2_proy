@@ -1,12 +1,20 @@
+#include <functional>
+
 #include "cli.hpp"
 #include "email.hpp"
 #include "fixed_file_manager.hpp"
+#include "csv_manager.hpp"
 
 using namespace std;
 
 #define EMAIL_FILE_PATH "email.bd"
+#define FILE_CSV "backup.csv"
 
 FixedFileManager<Email> email_file(EMAIL_FILE_PATH);
+CSV_Manager<Email> csv_file(FILE_CSV);
+
+
+auto append_to_csv = std::bind(&CSV_Manager<Email>::append, &csv_file, std::placeholders::_1);
 
 size_t search_by()
 {
@@ -28,30 +36,31 @@ size_t search_by()
         }
 
     }
+    return -1;
 }
 
-int main(int argc, char const *argv[])
+int main()
 {
-    short opc;
+    short opt;
     do
     {
         if (email_file.is_open())
         {
             clear_screen();
             display_menu();
-            opc = get_int();
+            opt = get_int();
         }
         else
         {
-            opc = OPC_ERROR_FILE;
+            opt = OPT_ERROR_FILE;
         }
-        switch (opc)
+        switch (opt)
         {
-            case OPC_EXIT:
+            case OPT_EXIT:
             {
                 break;
             }
-            case OPC_WRITE:
+            case OPT_WRITE:
             {
                 Email *email = new Email;
                 fill(email);
@@ -60,7 +69,7 @@ int main(int argc, char const *argv[])
                 msg(MSG_DONE);
                 break;
             }
-            case OPC_READ:
+            case OPT_READ:
             {
                 Email* email;
                 size_t pos = search_by();
@@ -74,7 +83,7 @@ int main(int argc, char const *argv[])
                 }
                 break;
             }
-            case OPC_MODIFY:
+            case OPT_MODIFY:
             {
                 Email* email;
                 size_t pos = search_by();
@@ -139,7 +148,7 @@ int main(int argc, char const *argv[])
                 }
                 break;
             }
-            case OPC_DELETE:
+            case OPT_DELETE:
             {
                 Email* email;
                 size_t pos = search_by();
@@ -158,7 +167,12 @@ int main(int argc, char const *argv[])
                 }
                 break;
             }
-            case OPC_ERROR_FILE:
+            case OPT_EXPORT_CSV:
+            {
+                email_file.for_each(append_to_csv);
+                break;
+            }
+            case OPT_ERROR_FILE:
             {
                 msg(MSG_ERROR_FILE);
                 break;
@@ -170,6 +184,6 @@ int main(int argc, char const *argv[])
             }
         }
         pause();
-    } while(opc != OPC_EXIT);
+    } while(opt != OPT_EXIT);
     return 0;
 }

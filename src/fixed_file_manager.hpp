@@ -17,6 +17,8 @@ public:
     T* read(const size_t pos);
     template <typename V, typename F>
     size_t find(V value, F cmp);
+    template <typename F>
+    void for_each(F function);
 };
 
 template <typename T>
@@ -98,12 +100,26 @@ size_t FixedFileManager<T>::find(V value, F cmp)
             if (file.eof()) break;
             if (cmp(value, aux) == 0)
             {
-                return (file.tellg() - sizeof(T)) / sizeof(T);
+                return ((long)file.tellg() - sizeof(T)) / sizeof(T);
             }
         }
     }
     return (size_t)-1;
 }
 
+template <typename T>
+template <typename F>
+void FixedFileManager<T>::for_each(F function)
+{
+    if (!file.is_open()) return;
+    T* aux = new T;
+    file.seekg(0, std::ios::beg);
+    while (true)
+    {
+        file.read((char*)aux, sizeof(T));
+        if (file.eof()) break;
+        function(aux);
+    }
+}
 
 #endif

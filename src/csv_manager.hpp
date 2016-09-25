@@ -9,17 +9,24 @@ class CSV_Manager
 private:
     std::fstream file;
     std::string to_standard(std::string field);
+    std::string path;
+    bool open();
+    void close();
 public:
     CSV_Manager(const char* path);
     ~CSV_Manager();
     bool is_open();
-    // bool write(const T* data, const size_t pos);
     void append(T* data);
-    // T* read(const size_t pos);
 };
 
 template <typename T>
 CSV_Manager<T>::CSV_Manager(const char* path)
+{
+    this->path = path;
+}
+
+template <typename T>
+bool CSV_Manager<T>::open()
 {
     file.open(path, std::ios::in | std::ios::out);
     if (!file.is_open())
@@ -28,7 +35,7 @@ CSV_Manager<T>::CSV_Manager(const char* path)
         aux.close();
         file.open(path, std::ios::in | std::ios::out);
     }
-
+    return file.is_open();
 }
 
 template <typename T>
@@ -49,6 +56,7 @@ bool CSV_Manager<T>::is_open()
 template <typename T>
 void CSV_Manager<T>::append(T* data)
 {
+    open();
     if (!file.is_open()) return;
     file.seekp(0, std::ios::end);
     auto fields = data->get_fields();
@@ -62,6 +70,7 @@ void CSV_Manager<T>::append(T* data)
         }
     }
     file << "\n";
+    file.close();
 }
 
 template <typename T>

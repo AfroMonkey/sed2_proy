@@ -6,10 +6,6 @@
 #include <vector>
 #include <string>
 
-struct EmailData
-{
-};
-
 class Email
 {
 private:
@@ -39,8 +35,26 @@ public:
     void set_content(const char *content);
     char* get_content();
     static int cmp_from(char *from, Email* a);
+    bool empty();
     std::vector<std::string> get_fields();
+    bool operator==(const Email& other) const;
+    bool operator!=(const Email& other) const;
+    static bool equal(const Email& a, const Email& b);
+    static bool diff(const Email& a, const Email& b);
+
+    Email();
 };
+
+Email::Email()
+{
+    id = 0;
+    from[0] = '\x0';
+    to[0] = '\x0';
+    cc[0] = '\x0';
+    bcc[0] = '\x0';
+    subject[0] = '\x0';
+    content[0] = '\x0';
+}
 
 void Email::set_id(const int id)
 {
@@ -153,6 +167,34 @@ std::vector<std::string> Email::get_fields()
     aux = content;
     fields.push_back(aux);
     return fields;
+}
+
+bool Email::operator==(const Email& other) const
+{
+    return id == other.id && time == other.time && strcmp(from, other.from) == 0 &&
+    strcmp(to, other.to) == 0 && strcmp(cc, other.cc) == 0 &&
+    strcmp(bcc, other.bcc) == 0 && strcmp(subject, other.subject) == 0 &&
+    strcmp(content, other.content) == 0;
+}
+
+bool Email::operator!=(const Email& other) const
+{
+    return !operator==(other);
+}
+
+bool Email::equal(const Email& a, const Email& b)
+{
+    return a == b;
+}
+
+bool Email::diff(const Email& a, const Email& b)
+{
+    return a != b;
+}
+
+bool Email::empty()
+{
+    return id == 0;
 }
 
 #endif

@@ -71,7 +71,7 @@ string get_text(string msg = ">")
     char c;
     string s;
     cout << msg;
-    while (cin.get(c))
+    while (cin.get(c) && c != '~')
     {
         s.append(1, c);
     }

@@ -37,10 +37,12 @@ public:
     static int cmp_from(char *from, Email* a);
     bool empty();
     std::vector<std::string> get_fields();
+    void set_fields(std::vector<std::string> fields);
     bool operator==(const Email& other) const;
     bool operator!=(const Email& other) const;
     static bool equal(const Email& a, const Email& b);
     static bool diff(const Email& a, const Email& b);
+    static bool compare_id(Email& a, const int id);
 
     Email();
 };
@@ -169,6 +171,25 @@ std::vector<std::string> Email::get_fields()
     return fields;
 }
 
+void Email::set_fields(std::vector<std::string> fields)
+{
+    std::string date;
+    std::string time_c;
+    id = atoi(fields[0].c_str());
+
+    date = fields[1];
+    date += ' ' + fields[2];
+    struct tm tm;
+    strptime(date.c_str(), "%Y-%m-%d %H:%M", &tm);
+    time = mktime(&tm);
+    strcpy(from,fields[3].c_str());
+    strcpy(to,fields[4].c_str());
+    strcpy(cc,fields[5].c_str());
+    strcpy(bcc,fields[6].c_str());
+    strcpy(subject,fields[7].c_str());
+    strcpy(content,fields[8].c_str());
+}
+
 bool Email::operator==(const Email& other) const
 {
     return id == other.id && time == other.time && strcmp(from, other.from) == 0 &&
@@ -195,6 +216,11 @@ bool Email::diff(const Email& a, const Email& b)
 bool Email::empty()
 {
     return id == 0;
+}
+
+bool Email::compare_id(Email& a, const int id)
+{
+    return id - a.get_id();
 }
 
 #endif

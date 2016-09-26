@@ -2,7 +2,8 @@
 *.out
 
 # Data
-*.bd
+*.db
+*.csv
 
 # Temp files
 *.~*

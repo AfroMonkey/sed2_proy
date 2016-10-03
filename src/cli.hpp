@@ -21,8 +21,9 @@ using namespace std;
 #define OPT_DELETE 4
 #define OPT_EXPORT_CSV 5
 #define OPT_IMPORT_CSV 6
-#define OPT_MODIFY_CSV 7
-#define OPT_DELETE_CSV 8
+#define OPT_READ_CSV 7
+#define OPT_MODIFY_CSV 8
+#define OPT_DELETE_CSV 9
 #define OPT_ERROR_FILE -1
 
 #define INVALID_OPTION "Opcion invalida\n"
@@ -39,6 +40,7 @@ void display_menu()
     cout << OPT_DELETE << ") Eliminar" << endl;
     cout << OPT_EXPORT_CSV << ") Exportar" << endl;
     cout << OPT_IMPORT_CSV << ") Importar" << endl;
+    cout << OPT_READ_CSV << ") Leer (CSV)" << endl;
     cout << OPT_MODIFY_CSV << ") Modificar (CSV)" << endl;
     cout << OPT_DELETE_CSV << ") Eliminar (CSV)" << endl;
     cout << OPT_EXIT << ") Salir" << endl;

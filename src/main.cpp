@@ -178,13 +178,28 @@ int main()
                     csv_file.for_each(write_to_db);
                 }
             }
+            case OPT_READ_CSV:
+            {
+                Email* email;
+                size_t* num_row = new size_t;
+                *num_row = 0;
+                email = csv_file.find(get_int("ID>"), Email::compare_id, num_row);
+                if (email != nullptr)
+                {
+                    display(email);
+                }
+                else
+                {
+                    msg(MSG_NOT_FOUND);
+                }
+                break;
+            }
             case OPT_MODIFY_CSV:
             {
                 Email* email;
                 size_t* num_row = new size_t;
                 *num_row = 0;
                 email = csv_file.find(get_int("ID>"), Email::compare_id, num_row);
-                std::cout << "***" << *num_row << std::endl;
                 if (email != nullptr)
                 {
                     display(email);

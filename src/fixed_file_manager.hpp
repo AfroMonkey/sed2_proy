@@ -164,7 +164,7 @@ void FixedFileManager<T>::for_each(F function, C compare, O object)
     while (true)
     {
         file.read((char*)aux, sizeof(T));
-        if(compare(*aux, object))
+        if(compare(*aux, object) == 0)
         {
             if (file.eof()) break;
             function(aux);

@@ -4,6 +4,7 @@
 # Data
 *.db
 *.csv
+*.email
 
 # Temp files
 *.~*

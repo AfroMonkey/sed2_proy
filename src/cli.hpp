@@ -19,11 +19,17 @@ using namespace std;
 #define OPT_READ 2
 #define OPT_MODIFY 3
 #define OPT_DELETE 4
-#define OPT_EXPORT_CSV 5
-#define OPT_IMPORT_CSV 6
-#define OPT_READ_CSV 7
-#define OPT_MODIFY_CSV 8
-#define OPT_DELETE_CSV 9
+#define OPT_MANAGE_BKP 5
+
+#define OPT_MANAGE_CSV 1
+#define OPT_MANAGE_DIM 2
+
+#define OPT_EXPORT_BKP 1
+#define OPT_IMPORT_BKP 2
+#define OPT_READ_BKP 3
+#define OPT_MODIFY_BKP 4
+#define OPT_DELETE_BKP 5
+
 #define OPT_ERROR_FILE -1
 
 #define INVALID_OPTION "Opcion invalida\n"
@@ -38,12 +44,23 @@ void display_menu()
     cout << OPT_READ << ") Leer" << endl;
     cout << OPT_MODIFY << ") Modificar" << endl;
     cout << OPT_DELETE << ") Eliminar" << endl;
-    cout << OPT_EXPORT_CSV << ") Exportar" << endl;
-    cout << OPT_IMPORT_CSV << ") Importar" << endl;
-    cout << OPT_READ_CSV << ") Leer (CSV)" << endl;
-    cout << OPT_MODIFY_CSV << ") Modificar (CSV)" << endl;
-    cout << OPT_DELETE_CSV << ") Eliminar (CSV)" << endl;
+    cout << OPT_MANAGE_BKP << ") Administrar otros archivos" << endl;
     cout << OPT_EXIT << ") Salir" << endl;
+}
+
+void display_bkp_menu()
+{
+    cout << OPT_MANAGE_CSV << ") CSV" << endl;
+    cout << OPT_MANAGE_DIM << ") Propietario" << endl;
+}
+
+void display_bkp_submenu()
+{
+    cout << OPT_EXPORT_BKP << ") Exportar" << endl;
+    cout << OPT_IMPORT_BKP << ") Importar" << endl;
+    cout << OPT_READ_BKP << ") Leer" << endl;
+    cout << OPT_MODIFY_BKP << ") Modificar" << endl;
+    cout << OPT_DELETE_BKP     << ") Eliminar" << endl;
 }
 
 int get_int(string msg = ">", int def = -1) {

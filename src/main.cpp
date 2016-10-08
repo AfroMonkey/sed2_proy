@@ -4,17 +4,20 @@
 #include "email.hpp"
 #include "fixed_file_manager.hpp"
 #include "csv_manager.hpp"
+#include "dimenssion_file_manager.hpp"
 
 using namespace std;
 
 #define FIXED_PATH "email.db"
 #define CSV_PATH "backup.csv"
+#define DIM_PATH "backup.email"
 
 FixedFileManager<Email> fixed_file(FIXED_PATH);
 CSV_Manager<Email> csv_file(CSV_PATH);
-
+DimenssionFileManager<Email> dim_file(DIM_PATH, 9);
 
 auto append_to_csv = std::bind(&CSV_Manager<Email>::append, &csv_file, std::placeholders::_1);
+auto append_to_dim = std::bind(&DimenssionFileManager<Email>::append, &dim_file, std::placeholders::_1);
 auto write_to_db = std::bind(&FixedFileManager<Email>::append, &fixed_file, std::placeholders::_1);
 
 size_t search_by()
@@ -38,6 +41,272 @@ size_t search_by()
 
     }
     return -1;
+}
+
+void csv_manage()
+{
+    display_bkp_submenu();
+    switch(get_int())
+    {
+        case OPT_EXPORT_BKP:
+        {
+            if (get_bool("Seguro? esto borrara el archivo anterior"))
+            {
+                remove(CSV_PATH);
+                fixed_file.for_each(append_to_csv);
+            }
+            break;
+        }
+        case OPT_IMPORT_BKP:
+        {
+            if (get_bool("Seguro? esto borrara el archivo anterior"))
+            {
+                fixed_file.clean();
+                csv_file.for_each(write_to_db);
+            }
+            break;
+        }
+        case OPT_READ_BKP:
+        {
+            Email* email;
+            size_t* num_row = new size_t;
+            *num_row = 0;
+            email = csv_file.find(get_int("ID>"), Email::compare_id, num_row);
+            if (email != nullptr)
+            {
+                display(email);
+            }
+            else
+            {
+                msg(MSG_NOT_FOUND);
+            }
+            break;
+        }
+        case OPT_MODIFY_BKP:
+        {
+            Email* email;
+            size_t* num_row = new size_t;
+            *num_row = 0;
+            email = csv_file.find(get_int("ID>"), Email::compare_id, num_row);
+            if (email != nullptr)
+            {
+                display(email);
+                msg("1) Fecha y Hora\n");
+                msg("2) Remitente\n");
+                msg("3) Destinatario\n");
+                msg("4) CC\n");
+                msg("5) BCC\n");
+                msg("6) Asunto\n");
+                msg("7) Contenido\n");
+                switch (get_int())
+                {
+                    case 1:
+                    {
+                        struct tm tm;
+                        strptime(get_string("Y-M-D H:M>").c_str(), "%Y-%m-%d %H:%M", &tm);
+                        time_t time = mktime(&tm);
+                        email->set_time(time);
+                        break;
+                    }
+                    case 2:
+                    {
+                        email->set_from(get_string("Remitente>").c_str());
+                        break;
+                    }
+                    case 3:
+                    {
+                        email->set_to(get_string("Destinatario>").c_str());
+                        break;
+                    }
+                    case 4:
+                    {
+                        email->set_cc(get_string("CC>").c_str());
+                        break;
+                    }
+                    case 5:
+                    {
+                        email->set_bcc(get_string("BCC>").c_str());
+                        break;
+                    }
+                    case 6:
+                    {
+                        email->set_subject(get_string("Asunto>").c_str());
+                        break;
+                    }
+                    case 7:
+                    {
+                        email->set_content(get_text("Contenido>").c_str());
+                        break;
+                    }
+                    default:
+                        msg(INVALID_OPTION);
+                }
+                csv_file.write_in(email, *num_row);
+                delete num_row;
+                delete email;
+            }
+            else
+            {
+                msg(MSG_NOT_FOUND);
+            }
+            break;
+        }
+        case OPT_DELETE_BKP:
+        {
+            Email* email;
+            size_t* num_row = new size_t;
+            *num_row = 0;
+            email = csv_file.find(get_int("ID>"), Email::compare_id, num_row);
+            if (email != nullptr)
+            {
+                display(email);
+                if(get_bool("Seguro?"))
+                {
+                    csv_file.write_in(nullptr, *num_row);
+                    delete num_row;
+                    delete email;
+                }
+            }
+            else
+            {
+                msg(MSG_NOT_FOUND);
+            }
+            break;
+        }
+    }
+}
+
+void dim_manage()
+{
+    display_bkp_submenu();
+    switch(get_int())
+    {
+        case OPT_EXPORT_BKP:
+        {
+            if (get_bool("Seguro? esto borrara el archivo anterior"))
+            {
+                remove(DIM_PATH);
+                fixed_file.for_each(append_to_dim);
+            }
+            break;
+        }
+        case OPT_IMPORT_BKP:
+        {
+            if (get_bool("Seguro? esto borrara el archivo anterior"))
+            {
+                fixed_file.clean();
+                dim_file.for_each(write_to_db);
+            }
+            break;
+        }
+        case OPT_READ_BKP:
+        {
+            Email* email;
+            size_t* num_row = new size_t;
+            *num_row = 0;
+            email = dim_file.find(get_int("ID>"), Email::compare_id, num_row);
+            if (email != nullptr)
+            {
+                display(email);
+            }
+            else
+            {
+                msg(MSG_NOT_FOUND);
+            }
+            break;
+        }
+        case OPT_MODIFY_BKP:
+        {
+            Email* email;
+            size_t* num_row = new size_t;
+            *num_row = 0;
+            email = dim_file.find(get_int("ID>"), Email::compare_id, num_row);
+            if (email != nullptr)
+            {
+                display(email);
+                msg("1) Fecha y Hora\n");
+                msg("2) Remitente\n");
+                msg("3) Destinatario\n");
+                msg("4) CC\n");
+                msg("5) BCC\n");
+                msg("6) Asunto\n");
+                msg("7) Contenido\n");
+                switch (get_int())
+                {
+                    case 1:
+                    {
+                        struct tm tm;
+                        strptime(get_string("Y-M-D H:M>").c_str(), "%Y-%m-%d %H:%M", &tm);
+                        time_t time = mktime(&tm);
+                        email->set_time(time);
+                        break;
+                    }
+                    case 2:
+                    {
+                        email->set_from(get_string("Remitente>").c_str());
+                        break;
+                    }
+                    case 3:
+                    {
+                        email->set_to(get_string("Destinatario>").c_str());
+                        break;
+                    }
+                    case 4:
+                    {
+                        email->set_cc(get_string("CC>").c_str());
+                        break;
+                    }
+                    case 5:
+                    {
+                        email->set_bcc(get_string("BCC>").c_str());
+                        break;
+                    }
+                    case 6:
+                    {
+                        email->set_subject(get_string("Asunto>").c_str());
+                        break;
+                    }
+                    case 7:
+                    {
+                        email->set_content(get_text("Contenido>").c_str());
+                        break;
+                    }
+                    default:
+                        msg(INVALID_OPTION);
+                }
+                dim_file.write_in(email, *num_row);
+                delete num_row;
+                delete email;
+            }
+            else
+            {
+                msg(MSG_NOT_FOUND);
+            }
+            break;
+        }
+        case OPT_DELETE_BKP:
+        {
+            Email* email;
+            size_t* num_row = new size_t;
+            *num_row = 0;
+            email = dim_file.find(get_int("ID>"), Email::compare_id, num_row);
+            if (email != nullptr)
+            {
+                display(email);
+                if(get_bool("Seguro?"))
+                {
+                    dim_file.write_in(nullptr, *num_row);
+                    delete num_row;
+                    delete email;
+                }
+            }
+            else
+            {
+                msg(MSG_NOT_FOUND);
+            }
+            break;
+        }
+    }
 }
 
 int main()
@@ -165,123 +434,26 @@ int main()
                 }
                 break;
             }
-            case OPT_EXPORT_CSV:
+            case OPT_MANAGE_BKP:
             {
-                fixed_file.for_each(append_to_csv);
-                break;
-            }
-            case OPT_IMPORT_CSV:
-            {
-                if (get_bool("Seguro? esto borrara el archivo anterior"))
+                display_bkp_menu();
+                switch (get_int())
                 {
-                    fixed_file.clean();
-                    csv_file.for_each(write_to_db);
-                }
-            }
-            case OPT_READ_CSV:
-            {
-                Email* email;
-                size_t* num_row = new size_t;
-                *num_row = 0;
-                email = csv_file.find(get_int("ID>"), Email::compare_id, num_row);
-                if (email != nullptr)
-                {
-                    display(email);
-                }
-                else
-                {
-                    msg(MSG_NOT_FOUND);
-                }
-                break;
-            }
-            case OPT_MODIFY_CSV:
-            {
-                Email* email;
-                size_t* num_row = new size_t;
-                *num_row = 0;
-                email = csv_file.find(get_int("ID>"), Email::compare_id, num_row);
-                if (email != nullptr)
-                {
-                    display(email);
-                    msg("1) Fecha y Hora\n");
-                    msg("2) Remitente\n");
-                    msg("3) Destinatario\n");
-                    msg("4) CC\n");
-                    msg("5) BCC\n");
-                    msg("6) Asunto\n");
-                    msg("7) Contenido\n");
-                    switch (get_int())
+                    case OPT_MANAGE_CSV:
                     {
-                        case 1:
-                        {
-                            struct tm tm;
-                            strptime(get_string("Y-M-D H:M>").c_str(), "%Y-%m-%d %H:%M", &tm);
-                            time_t time = mktime(&tm);
-                            email->set_time(time);
-                            break;
-                        }
-                        case 2:
-                        {
-                            email->set_from(get_string("Remitente>").c_str());
-                            break;
-                        }
-                        case 3:
-                        {
-                            email->set_to(get_string("Destinatario>").c_str());
-                            break;
-                        }
-                        case 4:
-                        {
-                            email->set_cc(get_string("CC>").c_str());
-                            break;
-                        }
-                        case 5:
-                        {
-                            email->set_bcc(get_string("BCC>").c_str());
-                            break;
-                        }
-                        case 6:
-                        {
-                            email->set_subject(get_string("Asunto>").c_str());
-                            break;
-                        }
-                        case 7:
-                        {
-                            email->set_content(get_text("Contenido>").c_str());
-                            break;
-                        }
-                        default:
-                            msg(INVALID_OPTION);
+                        csv_manage();
+                        break;
                     }
-                    csv_file.write_in(email, *num_row);
-                    delete num_row;
-                    delete email;
-                }
-                else
-                {
-                    msg(MSG_NOT_FOUND);
-                }
-                break;
-            }
-            case OPT_DELETE_CSV:
-            {
-                Email* email;
-                size_t* num_row = new size_t;
-                *num_row = 0;
-                email = csv_file.find(get_int("ID>"), Email::compare_id, num_row);
-                if (email != nullptr)
-                {
-                    display(email);
-                    if(get_bool("Seguro?"))
+                    case OPT_MANAGE_DIM:
                     {
-                        csv_file.write_in(nullptr, *num_row);
-                        delete num_row;
-                        delete email;
+                        dim_manage();
+                        break;
                     }
-                }
-                else
-                {
-                    msg(MSG_NOT_FOUND);
+                    default:
+                    {
+                        msg(INVALID_OPTION);
+                        break;
+                    }
                 }
                 break;
             }

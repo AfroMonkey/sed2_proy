@@ -17,12 +17,12 @@ private:
     void close();
     std::string next_row();
     T* next_record(std::string row = "x");
-    std::string to_row(T* data);
+    std::string to_row(T& data);
 public:
     CSV_Manager(const char* path);
     ~CSV_Manager();
     bool is_open();
-    void append(T* data);
+    void append(T& data);
     template <typename F>
     void for_each(F function);
     template <typename V, typename F>
@@ -66,10 +66,10 @@ bool CSV_Manager<T>::is_open()
 }
 
 template <typename T>
-std::string CSV_Manager<T>::to_row(T* data)
+std::string CSV_Manager<T>::to_row(T& data)
 {
     std::string record;
-    auto fields = data->get_fields();
+    auto fields = data.get_fields();
     size_t num_fields = fields.size();
     for (auto field : fields)
     {
@@ -83,7 +83,7 @@ std::string CSV_Manager<T>::to_row(T* data)
 }
 
 template <typename T>
-void CSV_Manager<T>::append(T* data)
+void CSV_Manager<T>::append(T& data)
 {
     open();
     if (!file.is_open()) return;
@@ -240,7 +240,7 @@ void CSV_Manager<T>::write_in(T *data, const size_t num_row)
         {
             if (data != nullptr)
             {
-                aux_file << to_row(data);
+                aux_file << to_row(*data);
             }
         }
         else

@@ -34,7 +34,6 @@ public:
     char* get_subject();
     void set_content(const char *content);
     char* get_content();
-    static int cmp_from(char *from, Email* a);
     bool empty();
     std::vector<std::string> get_fields();
     void set_fields(std::vector<std::string> fields);
@@ -43,6 +42,7 @@ public:
     static bool equal(const Email& a, const Email& b);
     static bool diff(const Email& a, const Email& b);
     static bool compare_id(Email& a, const int id);
+    static int cmp_from(Email& a, Email& b);
 
     Email();
 };
@@ -138,11 +138,6 @@ char* Email::get_content()
     return content;
 }
 
-int Email::cmp_from(char* from, Email* b)
-{
-    return strcmp(from, b->get_from());
-}
-
 std::vector<std::string> Email::get_fields()
 {
     std::vector<std::string> fields;
@@ -222,5 +217,11 @@ bool Email::compare_id(Email& a, const int id)
 {
     return id - a.get_id();
 }
+
+int Email::cmp_from(Email& a, Email& b)
+{
+    return strcmp(a.get_from(), b.get_from());
+}
+
 
 #endif

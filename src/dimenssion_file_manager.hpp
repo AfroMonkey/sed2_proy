@@ -17,13 +17,13 @@ private:
     bool open();
     void close();
     T* next_record();
-    void write(T* data);
+    void write(T& data);
     void write_aux(std::ofstream& file_aux, T* data);
 public:
     DimenssionFileManager(const char* path, const size_t n_fields);
     ~DimenssionFileManager();
     bool is_open();
-    void append(T* data);
+    void append(T& data);
     template <typename F>
     void for_each(F function);
     template <typename V, typename F>
@@ -68,9 +68,9 @@ bool DimenssionFileManager<T>::is_open()
 }
 
 template <typename T>
-void DimenssionFileManager<T>::write(T* data)
+void DimenssionFileManager<T>::write(T& data)
 {
-    auto fields = data->get_fields();
+    auto fields = data.get_fields();
     size_t chars;
     for (auto field : fields)
     {
@@ -81,7 +81,7 @@ void DimenssionFileManager<T>::write(T* data)
 }
 
 template <typename T>
-void DimenssionFileManager<T>::append(T* data)
+void DimenssionFileManager<T>::append(T& data)
 {
     open();
     if (!file.is_open()) return;

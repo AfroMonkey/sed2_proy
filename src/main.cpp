@@ -5,6 +5,7 @@
 #include "fixed_file_manager.hpp"
 #include "csv_manager.hpp"
 #include "dimenssion_file_manager.hpp"
+#include "priority_list.hpp"
 
 using namespace std;
 
@@ -16,9 +17,16 @@ FixedFileManager<Email> fixed_file(FIXED_PATH);
 CSV_Manager<Email> csv_file(CSV_PATH);
 DimenssionFileManager<Email> dim_file(DIM_PATH, 9);
 
+PriorityList<Email, Email::cmp_from> list;
+
 auto append_to_csv = std::bind(&CSV_Manager<Email>::append, &csv_file, std::placeholders::_1);
 auto append_to_dim = std::bind(&DimenssionFileManager<Email>::append, &dim_file, std::placeholders::_1);
 auto write_to_db = std::bind(&FixedFileManager<Email>::append, &fixed_file, std::placeholders::_1);
+
+void to_ram(Email email)
+{
+    list.push(email);
+}
 
 size_t search_by()
 {
@@ -35,7 +43,9 @@ size_t search_by()
             char from[256];
             size_t pos;
             strcpy(from, get_string("Remitente>").c_str());
-            pos = fixed_file.find(from, Email::cmp_from);
+            Email aux;
+            aux.set_from(from);
+            pos = fixed_file.find(aux, Email::cmp_from);
             return pos;
         }
 
@@ -50,7 +60,7 @@ void csv_manage()
     {
         case OPT_EXPORT_BKP:
         {
-            if (get_bool("Seguro? esto borrara el archivo anterior"))
+            if (get_bool(MSG_CONFIRM_DELETE))
             {
                 remove(CSV_PATH);
                 fixed_file.for_each(append_to_csv);
@@ -59,7 +69,7 @@ void csv_manage()
         }
         case OPT_IMPORT_BKP:
         {
-            if (get_bool("Seguro? esto borrara el archivo anterior"))
+            if (get_bool(MSG_CONFIRM_DELETE))
             {
                 fixed_file.clean();
                 csv_file.for_each(write_to_db);
@@ -183,7 +193,7 @@ void dim_manage()
     {
         case OPT_EXPORT_BKP:
         {
-            if (get_bool("Seguro? esto borrara el archivo anterior"))
+            if (get_bool(MSG_CONFIRM_DELETE))
             {
                 remove(DIM_PATH);
                 fixed_file.for_each(append_to_dim);
@@ -192,7 +202,7 @@ void dim_manage()
         }
         case OPT_IMPORT_BKP:
         {
-            if (get_bool("Seguro? esto borrara el archivo anterior"))
+            if (get_bool(MSG_CONFIRM_DELETE))
             {
                 fixed_file.clean();
                 dim_file.for_each(write_to_db);
@@ -312,10 +322,11 @@ void dim_manage()
 int main()
 {
     short opt;
+    bool in_ram = false;
     do
     {
         clear_screen();
-        display_menu();
+        display_menu(in_ram);
         opt = get_int();
         switch (opt)
         {
@@ -325,6 +336,11 @@ int main()
             }
             case OPT_WRITE:
             {
+                if (in_ram)
+                {
+                    msg(ERROR_RAM);
+                    break;
+                }
                 Email *email = new Email;
                 fill(email);
                 email->set_time(time(nullptr));
@@ -335,21 +351,45 @@ int main()
             }
             case OPT_READ:
             {
-                Email* email;
-                size_t pos = search_by();
-                if (pos != (size_t)-1 && (email = fixed_file.read(pos)) && email != nullptr)
+                if (in_ram)
                 {
-                    display(email);
-                    delete email;
+                    char c_from[256];
+                    strcpy(c_from, get_string("Remitente>").c_str());
+                    Email from;
+                    from.set_from(c_from);
+                    SLN<Email>* node = list.find(from);
+                    if (node)
+                    {
+                        display(&(node->data));
+                    }
+                    else
+                    {
+                        msg(MSG_NOT_FOUND);
+                    }
                 }
                 else
                 {
-                    msg(MSG_NOT_FOUND);
+                    Email* email;
+                    size_t pos = search_by();
+                    if (pos != (size_t)-1 && (email = fixed_file.read(pos)) && email != nullptr)
+                    {
+                        display(email);
+                        delete email;
+                    }
+                    else
+                    {
+                        msg(MSG_NOT_FOUND);
+                    }
                 }
                 break;
             }
             case OPT_MODIFY:
             {
+                if (in_ram)
+                {
+                    msg(ERROR_RAM);
+                    break;
+                }
                 Email* email;
                 size_t pos = search_by();
                 if (pos != (size_t)-1 && (email = fixed_file.read(pos)) && email != nullptr)
@@ -416,6 +456,11 @@ int main()
             }
             case OPT_DELETE:
             {
+                if (in_ram)
+                {
+                    msg(ERROR_RAM);
+                    break;
+                }
                 Email* email;
                 size_t pos = search_by();
                 if (pos != (size_t)-1 && (email = fixed_file.read(pos)) && email != nullptr)
@@ -454,6 +499,19 @@ int main()
                         msg(INVALID_OPTION);
                         break;
                     }
+                }
+                break;
+            }
+            case OPT_TOGGLE_RAM:
+            {
+                in_ram = !in_ram;
+                if (in_ram)
+                {
+                    fixed_file.for_each(to_ram);
+                }
+                else
+                {
+                    list.clear();
                 }
                 break;
             }

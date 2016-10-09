@@ -17,8 +17,8 @@ public:
     bool write(const T* data, const size_t pos);
     bool append(T* data);
     T* read(const size_t pos);
-    template <typename V, typename F>
-    size_t find(V value, F cmp);
+    template <typename F>
+    size_t find(T data, F cmp);
     template <typename F>
     void for_each(F function);
     template <typename F, typename C, typename O>
@@ -108,8 +108,8 @@ T* FixedFileManager<T>::read(const size_t pos)
 }
 
 template <typename T>
-template <typename V, typename F>
-size_t FixedFileManager<T>::find(V value, F cmp)
+template <typename F>
+size_t FixedFileManager<T>::find(T data, F cmp)
 {
     open();
     if (file.is_open())
@@ -120,7 +120,7 @@ size_t FixedFileManager<T>::find(V value, F cmp)
         {
             file.read((char*)aux, sizeof(T));
             if (file.eof()) break;
-            if (cmp(value, aux) == 0)
+            if (cmp(data, *aux) == 0)
             {
                 file.close();
                 return ((long)file.tellg() - sizeof(T)) / sizeof(T);
@@ -146,7 +146,7 @@ void FixedFileManager<T>::for_each(F function)
         if (!aux->empty())
         {
             if (file.eof()) break;
-            function(aux);
+            function(*(aux));
         }
     }
     file.clear();

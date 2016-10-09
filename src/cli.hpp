@@ -20,6 +20,7 @@ using namespace std;
 #define OPT_MODIFY 3
 #define OPT_DELETE 4
 #define OPT_MANAGE_BKP 5
+#define OPT_TOGGLE_RAM 6
 
 #define OPT_MANAGE_CSV 1
 #define OPT_MANAGE_DIM 2
@@ -32,19 +33,23 @@ using namespace std;
 
 #define OPT_ERROR_FILE -1
 
+#define ERROR_RAM "No se pude realizar esa operacion en RAM\n"
+
 #define INVALID_OPTION "Opcion invalida\n"
 #define MSG_DONE "Listo\n"
 #define MSG_NOT_FOUND "No encontrado\n"
 #define MSG_ERROR_FILE "Error en el archivo\n"
 #define MSG_PAUSE "Presione entrar para continuar . . ."
+#define MSG_CONFIRM_DELETE "Seguro? esto borrara el archivo anterior"
 
-void display_menu()
+void display_menu(bool in_ram)
 {
-    cout << OPT_WRITE << ") Escribir" << endl;
+    cout << OPT_WRITE << ") Escribir" << (in_ram? " DESACTIVADO":"") << endl;
     cout << OPT_READ << ") Leer" << endl;
-    cout << OPT_MODIFY << ") Modificar" << endl;
-    cout << OPT_DELETE << ") Eliminar" << endl;
+    cout << OPT_MODIFY << ") Modificar" << (in_ram? " DESACTIVADO":"") << endl;
+    cout << OPT_DELETE << ") Eliminar" << (in_ram? " DESACTIVADO":"") << endl;
     cout << OPT_MANAGE_BKP << ") Administrar otros archivos" << endl;
+    std::cout << OPT_TOGGLE_RAM << ") " << (in_ram? "Desactivar":"Activar") << " RAM" << std::endl;
     cout << OPT_EXIT << ") Salir" << endl;
 }
 
@@ -75,10 +80,10 @@ int get_int(string msg = ">", int def = -1) {
     return i;
 }
 
-bool get_bool(string msg = ">")
+bool get_bool(string msg = "")
 {
     char c;
-    cout << msg << "(y/n)";
+    cout << msg << "(y/n)>";
     cin >> c;
     return c == 'y';
 }

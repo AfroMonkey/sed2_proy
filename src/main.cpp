@@ -6,18 +6,23 @@
 #include "csv_manager.hpp"
 #include "dimenssion_file_manager.hpp"
 #include "priority_list.hpp"
+#include "avl.hpp"
+#include "index.hpp"
 
 using namespace std;
 
 #define FIXED_PATH "email.db"
 #define CSV_PATH "backup.csv"
 #define DIM_PATH "backup.email"
+#define INDEX_PATH "index.db"
 
 FixedFileManager<Email> fixed_file(FIXED_PATH);
+std::ofstream index_file;
 CSV_Manager<Email> csv_file(CSV_PATH);
 DimenssionFileManager<Email> dim_file(DIM_PATH, 9);
 
 PriorityList<Email, Email::cmp_from> list;
+Avl<Index, Index::compare> avl;
 
 auto append_to_csv = std::bind(&CSV_Manager<Email>::append, &csv_file, std::placeholders::_1);
 auto append_to_dim = std::bind(&DimenssionFileManager<Email>::append, &dim_file, std::placeholders::_1);
@@ -26,6 +31,22 @@ auto write_to_db = std::bind(&FixedFileManager<Email>::append, &fixed_file, std:
 void to_ram(Email email)
 {
     list.push(email);
+}
+
+void to_avl(Email email)
+{
+    Index index(email.get_id(), email.get_id());
+    avl.insert(index);
+}
+
+void index_to_avl(Index index)
+{
+    avl.insert(index);
+}
+
+void avl_to_file(Index index)
+{
+    index_file.write((char*)&index, sizeof(Index));
 }
 
 size_t search_by()
@@ -319,6 +340,71 @@ void dim_manage()
     }
 }
 
+void print_index(Index index)
+{
+    std::cout << index.key << "->" << index.address << std::endl;
+}
+
+void index_manage()
+{
+    msg("1) Crear\n");
+    avl.empty() ? msg("2) Consultar (DESACTIVADO)\n") : msg("2) Consultar\n");
+    avl.empty() ? msg("3) Guardar (DESACTIVADO)\n") : msg("2) Guardar\n");
+    msg("4) Cargar\n");
+    switch (get_int())
+    {
+        case 1:
+        {
+            avl.trim(avl.root());
+            fixed_file.for_each(to_avl);
+            avl.preorder(avl.root(), print_index);
+            break;
+        }
+        case 2:
+        {
+            if (avl.empty())
+            {
+                msg(INVALID_OPTION);
+                break;
+            }
+            Index index(get_int("ID>"), 1);
+            AvlNode<Index>* node = avl.get(index);
+            if (node)
+            {
+                display(fixed_file.read(node->data.address));
+            }
+            else
+            {
+                msg(MSG_NOT_FOUND);
+            }
+            break;
+        }
+        case 3:
+        {
+            if (avl.empty())
+            {
+                msg(INVALID_OPTION);
+                break;
+            }
+            index_file.open(INDEX_PATH, std::ios::in | std::ios::binary | std::ios::trunc);
+            avl.preorder(avl.root(), avl_to_file);
+            index_file.close();
+            break;
+        }
+        case 4:
+        {
+            avl.trim(avl.root());
+            FixedFileManager<Index> aux(INDEX_PATH);
+            aux.for_each(index_to_avl);
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+}
+
 int main()
 {
     short opt;
@@ -513,6 +599,11 @@ int main()
                 {
                     list.clear();
                 }
+                break;
+            }
+            case OPT_MANAGE_INDEX:
+            {
+                index_manage();
                 break;
             }
             case OPT_ERROR_FILE:

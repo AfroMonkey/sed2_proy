@@ -21,6 +21,7 @@ using namespace std;
 #define OPT_DELETE 4
 #define OPT_MANAGE_BKP 5
 #define OPT_TOGGLE_RAM 6
+#define OPT_MANAGE_INDEX 7
 
 #define OPT_MANAGE_CSV 1
 #define OPT_MANAGE_DIM 2
@@ -49,7 +50,8 @@ void display_menu(bool in_ram)
     cout << OPT_MODIFY << ") Modificar" << (in_ram? " DESACTIVADO":"") << endl;
     cout << OPT_DELETE << ") Eliminar" << (in_ram? " DESACTIVADO":"") << endl;
     cout << OPT_MANAGE_BKP << ") Administrar otros archivos" << endl;
-    std::cout << OPT_TOGGLE_RAM << ") " << (in_ram? "Desactivar":"Activar") << " RAM" << std::endl;
+    cout << OPT_TOGGLE_RAM << ") " << (in_ram? "Desactivar":"Activar") << " RAM" << endl;
+    cout << OPT_MANAGE_INDEX << ") Administrar indice" << endl;
     cout << OPT_EXIT << ") Salir" << endl;
 }
 

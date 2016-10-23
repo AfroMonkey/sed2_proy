@@ -192,7 +192,7 @@ AvlNode<T>* Avl<T, compare>::_max(AvlNode<T>* node)
 {
     if (!node) return nullptr;
     if (!node->right) return node;
-    return _min(node->right);
+    return _max(node->right);
 }
 
 template <typename T, int(*compare)(T&, T&)>
@@ -324,14 +324,15 @@ void Avl<T, compare>::insert(T& data)
 template <typename T, int(*compare)(T&, T&)>
 void Avl<T, compare>::remove(AvlNode<T>* node)
 {
+    if (!node) return;
     AvlNode<T>* aux;
     AvlNode<T>* parent = node->parent;
 
-    if (aux->left)
+    if (node->left)
     {
         aux = _max(node);
     }
-    else if (aux->right)
+    else if (node->right)
     {
         aux = _min(node);
     }
@@ -340,7 +341,7 @@ void Avl<T, compare>::remove(AvlNode<T>* node)
         aux = nullptr;
     }
 
-    if (node->parent->left == node)
+    if (node->parent && node->parent->left == node)
     {
         node->parent->left = aux;
     }

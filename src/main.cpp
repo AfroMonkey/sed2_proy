@@ -340,24 +340,19 @@ void dim_manage()
     }
 }
 
-void print_index(Index index)
-{
-    std::cout << index.key << "->" << index.address << std::endl;
-}
-
 void index_manage()
 {
     msg("1) Crear\n");
     avl.empty() ? msg("2) Consultar (DESACTIVADO)\n") : msg("2) Consultar\n");
-    avl.empty() ? msg("3) Guardar (DESACTIVADO)\n") : msg("2) Guardar\n");
+    avl.empty() ? msg("3) Guardar (DESACTIVADO)\n") : msg("3) Guardar\n");
     msg("4) Cargar\n");
+    msg("5) Eliminar algun indice\n");
     switch (get_int())
     {
         case 1:
         {
             avl.trim(avl.root());
             fixed_file.for_each(to_avl);
-            avl.preorder(avl.root(), print_index);
             break;
         }
         case 2:
@@ -398,6 +393,23 @@ void index_manage()
             aux.for_each(index_to_avl);
             break;
         }
+        case 5:
+	{
+            Index index(get_int("ID>"), 1);
+            AvlNode<Index>* node = avl.get(index);
+            if (node)
+            {
+                display(fixed_file.read(node->data.address));
+                if (get_bool("Seguro"))
+                {
+                    avl.remove(node);
+                }
+            }
+            else
+            {
+                msg(MSG_NOT_FOUND);
+            }
+	}
         default:
         {
             break;

@@ -23,7 +23,6 @@ using namespace std;
 #define OPT_TOGGLE_RAM 6
 #define OPT_MANAGE_INDEX 7
 #define OPT_MANAGE_INDEX_FROM 8
-#define OPT_MANAGE_INDEX_TO 9
 
 #define OPT_MANAGE_CSV 1
 #define OPT_MANAGE_DIM 2
@@ -55,7 +54,6 @@ void display_menu(bool in_ram)
     cout << OPT_TOGGLE_RAM << ") " << (in_ram? "Desactivar":"Activar") << " RAM" << endl;
     cout << OPT_MANAGE_INDEX << ") Administrar indice primario" << endl;
     cout << OPT_MANAGE_INDEX_FROM << ") Administrar indice secundario" << endl;
-    cout << OPT_MANAGE_INDEX_TO << ") Administrar secudnario Desde"<< endl;
     cout << OPT_EXIT << ") Salir" << endl;
 }
 

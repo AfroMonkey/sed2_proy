@@ -17,12 +17,10 @@ using namespace std;
 #define DIM_PATH "backup.email"
 #define INDEX_PATH "primary.idx"
 #define FROM_INDEX_PATH "from.idx"
-#define TO_INDEX_PATH "to.idx"
 
 FixedFileManager<Email> fixed_file(FIXED_PATH);
 std::ofstream index_file;
 std::ofstream from_index_file;
-std::ofstream to_index_file;
 CSV_Manager<Email> csv_file(CSV_PATH);
 DimenssionFileManager<Email> dim_file(DIM_PATH, 9);
 
@@ -39,7 +37,6 @@ int compare_char_index(Index<std::string, std::list<int> >  &a, Index<std::strin
 PriorityList<Email, Email::cmp_from> priority_list;
 Avl<Index<int, int>, compare_int_index> avl;
 Avl<Index<std::string, std::list<int> > , compare_char_index> avl_from;
-Avl<Index<std::string, std::list<int> > , compare_char_index> avl_to;
 
 auto append_to_csv = std::bind(&CSV_Manager<Email>::append, &csv_file, std::placeholders::_1);
 auto append_to_dim = std::bind(&DimenssionFileManager<Email>::append, &dim_file, std::placeholders::_1);
@@ -58,42 +55,27 @@ void to_avl(Email email)
 
 void to_avl_from(Email email)
 {
+    // Index<std::string, std::list<int> > index(email.get_from());
+    // AvlNode<Index<std::string, std::list<int> > > *aux = avl_from.get(index);
+    // if (aux)
+    // {
+    //     aux->data.address.push_back(email.get_id());
+    //     std::cout << "repetido" << std::endl;
+    //     std::cout << "email " << email.get_from() << std::endl;
+    //     std::cout << "aux " << aux->data.key << std::endl << std::endl;
+    // }
+    // else
+    // {
+    //     std::list<int> id_list;
+    //     id_list.push_back(email.get_id());
+    //     Index<std::string, std::list<int> > *index2 = new Index<std::string, std::list<int> >(email.get_from(), id_list);
+    //     avl_from.insert(*index2);
+    //     std::cout << "insert" << std::endl;
+    //     std::cout << "email " << email.get_from() << std::endl << std::endl;
+    // }
     Index<std::string, std::list<int> > index(email.get_from());
-    AvlNode<Index<std::string, std::list<int> > > *aux = avl_from.get(index);
-    if (aux)
-    {
-        aux->data.address.push_back(email.get_id());
-    }
-    else
-    {
-        std::list<int> id_list;
-        id_list.push_back(email.get_id());
-        Index<std::string, std::list<int> > *index2 = new Index<std::string, std::list<int> >(email.get_from(), id_list);
-        avl_from.insert(*index2);
-    }
-    // Index<std::string, std::list<int> > index(email.get_from());
-    // index.address.push_back(email.get_id());
-    // avl_from.insert(index);
-}
-
-void to_avl_to(Email email)
-{
-    Index<std::string, std::list<int> > index(email.get_to());
-    AvlNode<Index<std::string, std::list<int> > > *aux = avl_to.get(index);
-    if (aux)
-    {
-        aux->data.address.push_back(email.get_id());
-    }
-    else
-    {
-        std::list<int> id_list;
-        id_list.push_back(email.get_id());
-        Index<std::string, std::list<int> > *index2 = new Index<std::string, std::list<int> >(email.get_to(), id_list);
-        avl_to.insert(*index2);
-    }
-    // Index<std::string, std::list<int> > index(email.get_from());
-    // index.address.push_back(email.get_id());
-    // avl_from.insert(index);
+    index.address.push_back(email.get_id());
+    avl_from.insert(index);
 }
 
 void index_to_avl(Index<int, int> index)
@@ -104,11 +86,6 @@ void index_to_avl(Index<int, int> index)
 void index_to_avl_from(Index<std::string, std::list<int> >  index)
 {
     avl_from.insert(index);
-}
-
-void index_to_avl_to(Index<std::string, std::list<int> >  index)
-{
-    avl_to.insert(index);
 }
 
 void avl_to_file(Index<int, int> index)
@@ -126,17 +103,6 @@ void avl_from_to_file(Index<std::string, std::list<int> >  index)
     from_index_file.write(index.key.c_str(), 256);
     unsigned int nodes = (index.address.size());
     from_index_file.write((char*)&nodes, sizeof(unsigned));
-    for (auto n : index.address) {
-        multiple_addres_to_file(n);
-    }
-    // index.address->for_each(multiple_addres_to_file);
-}
-
-void avl_to_to_file(Index<std::string, std::list<int> >  index)
-{
-    to_index_file.write(index.key.c_str(), 256);
-    unsigned int nodes = (index.address.size());
-    to_index_file.write((char*)&nodes, sizeof(unsigned));
     for (auto n : index.address) {
         multiple_addres_to_file(n);
     }
@@ -517,10 +483,9 @@ void display_node_from_file(SLN<int>* node)
     msg("\n");
 }
 
-void display_node_to_file(SLN<int>* node)
+void print_from(Index<std::string, std::list<int> >  index)
 {
-    display(fixed_file.read(node->data));
-    msg("\n");
+    msg(index.key);
 }
 
 void from_index_manage()
@@ -545,23 +510,18 @@ void from_index_manage()
                 msg(INVALID_OPTION);
                 break;
             }
-            Index<std::string, std::list<int> >  index(get_string("Remitente>"));
-            AvlNode<Index<std::string, std::list<int> > >* node = avl_from.get(index);
-            // avl_from.preorder(avl_from.root(), print_from);
-            if (node)
-            {
-		for (auto n : node->data.address)
-		{
-		    display(fixed_file.read(n));
-		    cout << endl;
-		}
-                // display(fixed_file.read(node->data.address));
-                // node->data.address->for_each(display_node_from_file);
-            }
-            else
-            {
-                msg(MSG_NOT_FOUND);
-            }
+            // Index<std::string, std::list<int> >  index(get_char("Remitente>"));
+            // AvlNode<Index<std::string, std::list<int> > >* node = avl_from.get(index);
+            avl_from.preorder(avl_from.root(), print_from);
+            // if (node)
+            // {
+            //     //TODO display(fixed_file.read(node->data.address));
+            //     node->data.address->for_each(display_node_from_file);
+            // }
+            // else
+            // {
+            //     msg(MSG_NOT_FOUND);
+            // }
             break;
         }
         case 3:
@@ -581,90 +541,6 @@ void from_index_manage()
             avl_from.trim(avl_from.root());
             FixedFileManager<Index<std::string, std::list<int> > > aux(FROM_INDEX_PATH);
             aux.for_each(index_to_avl_from);
-            break;
-        }
-    //     case 5:
-    //     {
-    //         Index<std::string, std::list<int> >  index(get_char("Remitente>"));
-    //         AvlNode<Index<std::string, std::list<int> > >* node = avl_from.get(index);
-    //         if (node)
-    //         {
-    //             //TODO display(fixed_file.read(node->data.address));
-    //             if (get_bool("Seguro"))
-    //             {
-    //                 avl_from.remove(node);
-    //             }
-    //         }
-    //         else
-    //         {
-    //             msg(MSG_NOT_FOUND);
-    //         }
-    //    }
-       default:
-       {
-           break;
-       }
-   }
-}
-
-void to_index_manage()
-{
-    msg("1) Crear\n");
-    avl_to.empty() ? msg("2) Consultar (DESACTIVADO)\n") : msg("2) Consultar\n");
-    avl_to.empty() ? msg("3) Guardar (DESACTIVADO)\n") : msg("3) Guardar\n");
-    msg("4) Cargar\n");
-    // msg("5) Eliminar algun indice\n");
-    switch (get_int())
-    {
-        case 1:
-        {
-            avl_to.trim(avl_to.root());
-            fixed_file.for_each(to_avl_to);
-            break;
-        }
-        case 2:
-        {
-            if (avl_to.empty())
-            {
-                msg(INVALID_OPTION);
-                break;
-            }
-            Index<std::string, std::list<int> >  index(get_string("Remitente>"));
-            AvlNode<Index<std::string, std::list<int> > >* node = avl_to.get(index);
-            // avl_to.preorder(avl_to.root(), print_to);
-            if (node)
-            {
-		for (auto n : node->data.address)
-		{
-		    display(fixed_file.read(n));
-		    cout << endl;
-		}
-                // display(fixed_file.read(node->data.address));
-                // node->data.address->for_each(display_node_to_file);
-            }
-            else
-            {
-                msg(MSG_NOT_FOUND);
-            }
-            break;
-        }
-        case 3:
-        {
-            if (avl_to.empty())
-            {
-                msg(INVALID_OPTION);
-                break;
-            }
-            index_file.open(FROM_INDEX_PATH, std::ios::in | std::ios::binary | std::ios::trunc);
-            avl_to.preorder(avl_to.root(), avl_to_to_file);
-            index_file.close();
-            break;
-        }
-        case 4:
-        {
-            avl_to.trim(avl_to.root());
-            FixedFileManager<Index<std::string, std::list<int> > > aux(FROM_INDEX_PATH);
-            aux.for_each(index_to_avl_to);
             break;
         }
     //     case 5:
@@ -895,11 +771,6 @@ int main()
             case OPT_MANAGE_INDEX_FROM:
             {
                 from_index_manage();
-                break;
-            }
-            case OPT_MANAGE_INDEX_TO:
-            {
-                to_index_manage();
                 break;
             }
             case OPT_ERROR_FILE:

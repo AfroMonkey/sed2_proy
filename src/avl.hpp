@@ -1,11 +1,19 @@
 #ifndef AVL_HPP
 #define AVL_HPP
 
+#include <ctime>
+
+#define MAX_NODES 10
+
 template <typename T>
 class AvlNode
 {
+private:
+    time_t _lu;
+    T _data;
 public:
-    T data;
+    void data(T data);
+    T& data();
     AvlNode* parent;
     AvlNode* left;
     AvlNode* right;
@@ -13,6 +21,7 @@ public:
     AvlNode();
     AvlNode(T data);
     bool is_leaf();
+    time_t lu();
 };
 
 template <typename T>
@@ -21,6 +30,7 @@ AvlNode<T>::AvlNode()
     parent = nullptr;
     left = nullptr;
     right = nullptr;
+    _lu = std::time(0);
 }
 
 template <typename T>
@@ -29,13 +39,34 @@ AvlNode<T>::AvlNode(T data)
     parent = nullptr;
     left = nullptr;
     right = nullptr;
-    this->data = data;
+    this->_data = data;
+    _lu = std::time(0);
+}
+
+template <typename T>
+void AvlNode<T>::data(T data)
+{
+    _lu = std::time(0);
+    _data = data;
+}
+
+template <typename T>
+T& AvlNode<T>::data()
+{
+    _lu = std::time(0);
+    return _data;
 }
 
 template <typename T>
 bool AvlNode<T>::is_leaf()
 {
     return left == nullptr && right == nullptr;
+}
+
+template <typename T>
+time_t AvlNode<T>::lu()
+{
+    return _lu;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -59,8 +90,10 @@ private:
     void _dlr(AvlNode<T>* subtree);
     void _srr(AvlNode<T>* subtree);
     void _drr(AvlNode<T>* subtree);
+    AvlNode<T>* min_lu;
+    bool paged;
 public:
-    Avl();
+    Avl(bool p=false);
     ~Avl();
     int nodes();
     AvlNode<T>* get(T &data);
@@ -75,27 +108,30 @@ public:
     void postorder(AvlNode<T>* subtree, F function);
     template <typename F>
     void inorder(AvlNode<T>* subtree, F function);
+    void compute_lu(AvlNode<T>* subtree);
 };
 
 template <typename T, int(*compare)(T&, T&)>
-Avl<T, compare>::Avl()
+Avl<T, compare>::Avl(bool p)
 {
     _root = nullptr;
     _nodes = 0;
+    paged = p;
 }
 
 template <typename T, int(*compare)(T&, T&)>
 Avl<T, compare>::~Avl()
 {
     trim(_root);
+    _nodes = 0;
 }
 
 template <typename T, int(*compare)(T&, T&)>
 AvlNode<T>* Avl<T, compare>:: _get(AvlNode<T>* subtree, T &data)
 {
     if (!subtree) return nullptr;
-    if (compare(data, subtree->data) < 0) return _get(subtree->left, data);
-    if (compare(data, subtree->data) == 0) return subtree;
+    if (compare(data, subtree->data()) < 0) return _get(subtree->left, data);
+    if (compare(data, subtree->data()) == 0) return subtree;
     return _get(subtree->right, data);
 }
 
@@ -103,7 +139,7 @@ template <typename T, int(*compare)(T&, T&)>
 void Avl<T, compare>::_insert(AvlNode<T>* subtree, AvlNode<T>* node)
 {
     if (!subtree) return;
-    if (compare(node->data, subtree->data) < 0)
+    if (compare(node->data(), subtree->data()) < 0)
     {
         if (!subtree->left)
         {
@@ -200,6 +236,7 @@ void Avl<T, compare>::_trim(AvlNode<T>* subtree)
 {
     if(subtree)
     {
+        --_nodes;
         _trim(subtree->left);
         _trim(subtree->right);
         delete subtree;
@@ -309,14 +346,35 @@ AvlNode<T>* Avl<T, compare>::get(T &data)
 }
 
 template <typename T, int(*compare)(T&, T&)>
+void Avl<T, compare>::compute_lu(AvlNode<T>* subtree)
+{
+    if(subtree)
+    {
+        if (paged && subtree->lu() < min_lu->lu())
+        {
+            min_lu = subtree;
+        }
+        compute_lu(subtree->left);
+        compute_lu(subtree->right);
+    }
+}
+
+template <typename T, int(*compare)(T&, T&)>
 void Avl<T, compare>::insert(T& data)
 {
+    ++_nodes;
     if (!_root)
     {
         _root = new AvlNode<T>(data);
     }
     else
     {
+        if (_nodes > MAX_NODES)
+        {
+            min_lu = _root;
+            compute_lu(_root);
+            remove(min_lu);
+        }
         _insert(_root, new AvlNode<T>(data));
     }
 }
@@ -330,11 +388,11 @@ void Avl<T, compare>::remove(AvlNode<T>* node)
 
     if (node->left)
     {
-        aux = _max(node);
+        aux = _max(node->left);
     }
     else if (node->right)
     {
-        aux = _min(node);
+        aux = _min(node->right);
     }
     else
     {
@@ -345,13 +403,12 @@ void Avl<T, compare>::remove(AvlNode<T>* node)
     {
         node->parent->left = aux;
     }
-    else
+    else if (node->parent)
     {
         node->parent->right = aux;
     }
 
     if (aux) aux->parent = node->parent;
-
     if (node == _root) _root = aux;
 
 
@@ -365,6 +422,7 @@ void Avl<T, compare>::remove(AvlNode<T>* node)
     {
         _balance(_root);
     }
+    --_nodes;
 }
 
 template <typename T, int(*compare)(T&, T&)>
@@ -397,7 +455,7 @@ void Avl<T, compare>::preorder(AvlNode<T>* subtree, F function)
 {
     if(subtree)
     {
-        function(subtree->data);
+        function(subtree->data());
         preorder(subtree->left, function);
         preorder(subtree->right, function);
     }
@@ -411,7 +469,7 @@ void Avl<T, compare>::postorder(AvlNode<T>* subtree, F function)
     {
         postorder(subtree->left, function);
         postorder(subtree->right, function);
-        function(subtree->data);
+        function(subtree->data());
     }
 }
 
@@ -422,7 +480,7 @@ void Avl<T, compare>::inorder(AvlNode<T>* subtree, F function)
     if(subtree)
     {
         inorder(subtree->left, function);
-        function(subtree->data);
+        function(subtree->data());
         inorder(subtree->right, function);
     }
 }

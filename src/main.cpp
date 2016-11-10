@@ -37,7 +37,7 @@ int compare_char_index(Index<std::string, std::list<int> >  &a, Index<std::strin
 }
 
 PriorityList<Email, Email::cmp_from> priority_list;
-Avl<Index<int, int>, compare_int_index> avl;
+Avl<Index<int, int>, compare_int_index> primary_index = Avl<Index<int, int>, compare_int_index>(true);
 Avl<Index<std::string, std::list<int> > , compare_char_index> avl_from;
 Avl<Index<std::string, std::list<int> > , compare_char_index> avl_to;
 
@@ -53,7 +53,7 @@ void to_ram(Email email)
 void to_avl(Email email)
 {
     Index<int, int> index(email.get_id(), email.get_id());
-    avl.insert(index);
+    primary_index.insert(index);
 }
 
 void to_avl_from(Email email)
@@ -62,7 +62,7 @@ void to_avl_from(Email email)
     AvlNode<Index<std::string, std::list<int> > > *aux = avl_from.get(index);
     if (aux)
     {
-        aux->data.address.push_back(email.get_id());
+        aux->data().address.push_back(email.get_id());
     }
     else
     {
@@ -82,7 +82,7 @@ void to_avl_to(Email email)
     AvlNode<Index<std::string, std::list<int> > > *aux = avl_to.get(index);
     if (aux)
     {
-        aux->data.address.push_back(email.get_id());
+        aux->data().address.push_back(email.get_id());
     }
     else
     {
@@ -98,7 +98,7 @@ void to_avl_to(Email email)
 
 void index_to_avl(Index<int, int> index)
 {
-    avl.insert(index);
+    primary_index.insert(index);
 }
 
 void index_to_avl_from(Index<std::string, std::list<int> >  index)
@@ -437,52 +437,61 @@ void dim_manage()
 void index_manage()
 {
     msg("1) Crear\n");
-    avl.empty() ? msg("2) Consultar (DESACTIVADO)\n") : msg("2) Consultar\n");
-    avl.empty() ? msg("3) Guardar (DESACTIVADO)\n") : msg("3) Guardar\n");
+    primary_index.empty() ? msg("2) Consultar (DESACTIVADO)\n") : msg("2) Consultar\n");
+    primary_index.empty() ? msg("3) Guardar (DESACTIVADO)\n") : msg("3) Guardar\n");
     msg("4) Cargar\n");
     msg("5) Eliminar algun indice\n");
     switch (get_int())
     {
         case 1:
         {
-            avl.trim(avl.root());
+            primary_index.trim(primary_index.root());
             fixed_file.for_each(to_avl);
             break;
         }
         case 2:
         {
-            if (avl.empty())
+            if (primary_index.empty())
             {
                 msg(INVALID_OPTION);
                 break;
             }
             Index<int, int> index(get_int("ID>"), 1);
-            AvlNode<Index<int, int>>* node = avl.get(index);
+            AvlNode<Index<int, int>>* node = primary_index.get(index);
             if (node)
             {
-                display(fixed_file.read(node->data.address));
+		msg("INDEX\n");
+                display(fixed_file.read(node->data().address));
             }
             else
             {
-                msg(MSG_NOT_FOUND);
+                Email* email;
+                email = fixed_file.read(index.key);
+                if (strcmp(email->get_from(), "") != 0)
+                {
+                    Index<int, int> index(email->get_id(), email->get_id());
+                    primary_index.insert(index);
+                }
+		msg("NO INDEX\n");
+                display(email);
             }
             break;
         }
         case 3:
         {
-            if (avl.empty())
+            if (primary_index.empty())
             {
                 msg(INVALID_OPTION);
                 break;
             }
             index_file.open(INDEX_PATH, std::ios::in | std::ios::binary | std::ios::trunc);
-            avl.preorder(avl.root(), avl_to_file);
+            primary_index.preorder(primary_index.root(), avl_to_file);
             index_file.close();
             break;
         }
         case 4:
         {
-            avl.trim(avl.root());
+            primary_index.trim(primary_index.root());
             FixedFileManager<Index<int, int>> aux(INDEX_PATH);
             aux.for_each(index_to_avl);
             break;
@@ -490,13 +499,13 @@ void index_manage()
         case 5:
 	{
             Index<int, int> index(get_int("ID>"), 1);
-            AvlNode<Index<int, int>>* node = avl.get(index);
+            AvlNode<Index<int, int>>* node = primary_index.get(index);
             if (node)
             {
-                display(fixed_file.read(node->data.address));
+                display(fixed_file.read(node->data().address));
                 if (get_bool("Seguro"))
                 {
-                    avl.remove(node);
+                    primary_index.remove(node);
                 }
             }
             else
@@ -550,7 +559,7 @@ void from_index_manage()
             // avl_from.preorder(avl_from.root(), print_from);
             if (node)
             {
-		for (auto n : node->data.address)
+		for (auto n : node->data().address)
 		{
 		    display(fixed_file.read(n));
 		    cout << endl;
@@ -634,7 +643,7 @@ void to_index_manage()
             // avl_to.preorder(avl_to.root(), print_to);
             if (node)
             {
-		for (auto n : node->data.address)
+		for (auto n : node->data().address)
 		{
 		    display(fixed_file.read(n));
 		    cout << endl;

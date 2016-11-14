@@ -8,6 +8,7 @@
 #include "priority_list.hpp"
 #include "avl.hpp"
 #include "index.hpp"
+#include "hash.hpp"
 #include <list>
 
 using namespace std;
@@ -19,12 +20,30 @@ using namespace std;
 #define FROM_INDEX_PATH "from.idx"
 #define TO_INDEX_PATH "to.idx"
 
+unsigned long pjw(const char* s)
+{
+    unsigned h = 0, high;
+    unsigned bits = sizeof(unsigned)*8;
+    while (*s)
+    {
+        h = (h << bits/8) + *s++;
+        high = h & (0xF << sizeof(unsigned)*2);
+        if (high)
+        {
+            h ^= (high >> bits*3/4);
+            h &= -high;
+        }
+    }
+    return h;
+}
+
 FixedFileManager<Email> fixed_file(FIXED_PATH);
 std::ofstream index_file;
 std::ofstream from_index_file;
 std::ofstream to_index_file;
 CSV_Manager<Email> csv_file(CSV_PATH);
 DimenssionFileManager<Email> dim_file(DIM_PATH, 9);
+Hash<const char*, Email> hash_from(pjw, 211);
 
 int compare_int_index(Index<int, int> &a, Index<int, int> &b)
 {
@@ -71,9 +90,6 @@ void to_avl_from(Email email)
         Index<std::string, std::list<int> > *index2 = new Index<std::string, std::list<int> >(email.get_from(), id_list);
         avl_from.insert(*index2);
     }
-    // Index<std::string, std::list<int> > index(email.get_from());
-    // index.address.push_back(email.get_id());
-    // avl_from.insert(index);
 }
 
 void to_avl_to(Email email)
@@ -91,9 +107,6 @@ void to_avl_to(Email email)
         Index<std::string, std::list<int> > *index2 = new Index<std::string, std::list<int> >(email.get_to(), id_list);
         avl_to.insert(*index2);
     }
-    // Index<std::string, std::list<int> > index(email.get_from());
-    // index.address.push_back(email.get_id());
-    // avl_from.insert(index);
 }
 
 void index_to_avl(Index<int, int> index)
@@ -129,7 +142,7 @@ void avl_from_to_file(Index<std::string, std::list<int> >  index)
     for (auto n : index.address) {
         multiple_addres_to_file(n);
     }
-    // index.address->for_each(multiple_addres_to_file);
+
 }
 
 void avl_to_to_file(Index<std::string, std::list<int> >  index)
@@ -140,7 +153,6 @@ void avl_to_to_file(Index<std::string, std::list<int> >  index)
     for (auto n : index.address) {
         multiple_addres_to_file(n);
     }
-    // index.address->for_each(multiple_addres_to_file);
 }
 
 size_t search_by()
@@ -538,7 +550,6 @@ void from_index_manage()
     avl_from.empty() ? msg("2) Consultar (DESACTIVADO)\n") : msg("2) Consultar\n");
     avl_from.empty() ? msg("3) Guardar (DESACTIVADO)\n") : msg("3) Guardar\n");
     msg("4) Cargar\n");
-    // msg("5) Eliminar algun indice\n");
     switch (get_int())
     {
         case 1:
@@ -556,16 +567,16 @@ void from_index_manage()
             }
             Index<std::string, std::list<int> >  index(get_string("Remitente>"));
             AvlNode<Index<std::string, std::list<int> > >* node = avl_from.get(index);
-            // avl_from.preorder(avl_from.root(), print_from);
+
             if (node)
             {
 		for (auto n : node->data().address)
 		{
 		    display(fixed_file.read(n));
-		    cout << endl;
+            msg("\n");
 		}
-                // display(fixed_file.read(node->data.address));
-                // node->data.address->for_each(display_node_from_file);
+
+
             }
             else
             {
@@ -592,23 +603,6 @@ void from_index_manage()
             aux.for_each(index_to_avl_from);
             break;
         }
-    //     case 5:
-    //     {
-    //         Index<std::string, std::list<int> >  index(get_char("Remitente>"));
-    //         AvlNode<Index<std::string, std::list<int> > >* node = avl_from.get(index);
-    //         if (node)
-    //         {
-    //             //TODO display(fixed_file.read(node->data.address));
-    //             if (get_bool("Seguro"))
-    //             {
-    //                 avl_from.remove(node);
-    //             }
-    //         }
-    //         else
-    //         {
-    //             msg(MSG_NOT_FOUND);
-    //         }
-    //    }
        default:
        {
            break;
@@ -622,7 +616,6 @@ void to_index_manage()
     avl_to.empty() ? msg("2) Consultar (DESACTIVADO)\n") : msg("2) Consultar\n");
     avl_to.empty() ? msg("3) Guardar (DESACTIVADO)\n") : msg("3) Guardar\n");
     msg("4) Cargar\n");
-    // msg("5) Eliminar algun indice\n");
     switch (get_int())
     {
         case 1:
@@ -640,16 +633,13 @@ void to_index_manage()
             }
             Index<std::string, std::list<int> >  index(get_string("Remitente>"));
             AvlNode<Index<std::string, std::list<int> > >* node = avl_to.get(index);
-            // avl_to.preorder(avl_to.root(), print_to);
             if (node)
             {
 		for (auto n : node->data().address)
 		{
 		    display(fixed_file.read(n));
-		    cout << endl;
+		    msg("\n");
 		}
-                // display(fixed_file.read(node->data.address));
-                // node->data.address->for_each(display_node_to_file);
             }
             else
             {
@@ -676,28 +666,43 @@ void to_index_manage()
             aux.for_each(index_to_avl_to);
             break;
         }
-    //     case 5:
-    //     {
-    //         Index<std::string, std::list<int> >  index(get_char("Remitente>"));
-    //         AvlNode<Index<std::string, std::list<int> > >* node = avl_from.get(index);
-    //         if (node)
-    //         {
-    //             //TODO display(fixed_file.read(node->data.address));
-    //             if (get_bool("Seguro"))
-    //             {
-    //                 avl_from.remove(node);
-    //             }
-    //         }
-    //         else
-    //         {
-    //             msg(MSG_NOT_FOUND);
-    //         }
-    //    }
        default:
        {
            break;
        }
    }
+}
+
+void to_hash(Email email)
+{
+    hash_from.set(email.get_from(), email);
+}
+
+void manage_hash()
+{
+    msg("1) Cargar\n");
+    msg("2) Consultar\n");
+    switch (get_int())
+    {
+        case 1:
+            hash_from.clear();
+            fixed_file.for_each(to_hash);
+            break;
+        case 2:
+            try
+            {
+                for (auto email : hash_from.get(get_string("Remitente>").c_str()))
+                {
+                    display(&email);
+                    msg("\n");
+                }
+            }
+            catch (int e)
+            {
+                msg(MSG_NOT_FOUND);
+            }
+            break;
+    }
 }
 
 int main()
@@ -711,6 +716,11 @@ int main()
         opt = get_int();
         switch (opt)
         {
+            case OPT_MANAGE_HASH:
+            {
+                manage_hash();
+                break;
+            }
             case OPT_EXIT:
             {
                 break;

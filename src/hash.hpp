@@ -17,9 +17,12 @@ public:
 
     void clear();
     std::list<V> get(const K& key);
-    void set(const K& key, V value);
+    bool set(const K& key, V value);
+    bool set_p(const unsigned long& pos, std::list<V> l);
+    bool set_h(const K& key, std::list<V> l);
     bool has(const K& key);
     bool del(const K& key);
+    std::list<std::list<V>> get_lists();
 };
 
 template <typename K, typename V>
@@ -68,12 +71,32 @@ std::list<V> Hash<K, V>::get(const K& key)
 }
 
 template <typename K, typename V>
-void Hash<K, V>::set(const K& key, V value)
+bool Hash<K, V>::set(const K& key, V value)
 {
     unsigned long pos = _hf(key);
+    if (pos > _max) return false;
     _table[pos].push_back(value);
     _established[pos] = true;
+    return true;
 }
+
+template <typename K, typename V>
+bool Hash<K, V>::set_p(const unsigned long& pos, std::list<V> l)
+{
+    if (pos > _max) return false;
+    _table[pos] = l;
+    _established[pos] = true;
+}
+
+template <typename K, typename V>
+bool Hash<K, V>::set_h(const K& key, std::list<V> l)
+{
+    unsigned long pos = _hf(key);
+    if (pos > _max) return false;
+    _table[pos] = l;
+    _established[pos] = true;
+}
+
 
 template <typename K, typename V>
 bool Hash<K, V>::has(const K& key)
@@ -91,6 +114,20 @@ bool Hash<K, V>::del(const K& key)
         return true;
     }
     return false;
+}
+
+template <typename K, typename V>
+std::list<std::list<V>> Hash<K, V>::get_lists()
+{
+    std::list<std::list<V>> l;
+    for (unsigned int i = 0; i < _max; ++i)
+    {
+        if (_established[i])
+        {
+            l.push_back(_table[i]);
+        }
+    }
+    return l;
 }
 
 #endif

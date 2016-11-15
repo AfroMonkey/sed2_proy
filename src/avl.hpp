@@ -485,5 +485,4 @@ void Avl<T, compare>::inorder(AvlNode<T>* subtree, F function)
     }
 }
 
-
 #endif

@@ -19,6 +19,7 @@ using namespace std;
 #define INDEX_PATH "primary.idx"
 #define FROM_INDEX_PATH "from.idx"
 #define TO_INDEX_PATH "to.idx"
+#define HASH_PATH "from.hash"
 
 unsigned long pjw(const char* s)
 {
@@ -680,15 +681,20 @@ void to_hash(Email email)
 
 void manage_hash()
 {
-    msg("1) Cargar\n");
+    msg("1) Crear\n");
     msg("2) Consultar\n");
+    msg("3) Guardar\n");
+    msg("4) Cargar\n");
     switch (get_int())
     {
         case 1:
+        {
             hash_from.clear();
             fixed_file.for_each(to_hash);
             break;
+        }
         case 2:
+        {
             try
             {
                 for (auto email : hash_from.get(get_string("Remitente>").c_str()))
@@ -702,6 +708,49 @@ void manage_hash()
                 msg(MSG_NOT_FOUND);
             }
             break;
+        }
+        case 3:
+        {
+            ofstream aux(HASH_PATH);
+            int n;
+            for (auto l : hash_from.get_lists())
+            {
+                n = l.size();
+                aux.write((char*)&n, sizeof(int));
+                for (Email e : l)
+                {
+                    aux.write((char*)&e, sizeof(Email));
+                }
+            }
+            break;
+        }
+        case 4:
+        {
+            hash_from.clear();
+            ifstream aux(HASH_PATH);
+            if (aux.is_open())
+            {
+                int n;
+                while (true)
+                {
+                    aux.read((char*)&n, sizeof(int));
+                    if (aux.eof()) break;
+                    list<Email> l;
+                    Email e;
+                    for (int i = 0; i < n; ++i)
+                    {
+                        aux.read((char*)&e, sizeof(Email));
+                        l.push_back(e);
+                    }
+                    hash_from.set_h(l.front().get_from(), l);
+                }
+            }
+            else
+            {
+                msg(MSG_ERROR_FILE);
+            }
+            break;
+        }
     }
 }
 
